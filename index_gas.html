@@ -48,7 +48,8 @@
 
         .app-container {
             width: 100%;
-            max-width: 800px;
+            max-width: 1200px;
+            /* Widened to support split layout */
             padding: 2rem;
             display: flex;
             flex-direction: column;
@@ -579,7 +580,7 @@
             animation: fadeIn 0.8s ease-out;
         }
 
-        @media (min-width: 900px) {
+        @media (min-width: 768px) {
             .split-layout {
                 flex-direction: row;
                 align-items: flex-start;
