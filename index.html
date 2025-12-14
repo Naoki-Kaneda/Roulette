@@ -45,45 +45,47 @@
                 </div>
             </section>
 
-            <!-- Settings & Candidates Section -->
-            <section class="settings-candidate-section hidden" id="settings-candidate-section">
-                <div class="settings-panel">
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="global-exclude-toggle" checked>
-                        <span class="slider"></span>
-                    </label>
-                    <span class="setting-label">当選者を全登壇者から除外</span>
-                </div>
-
-                <div class="candidate-list-container">
-
-                    <div class="candidate-header">
-                        <h3>Candidates <span id="candidate-count">(0)</span></h3>
-                        <button id="toggle-list-btn" class="btn-text">▼</button>
+            <!-- Split Layout Container -->
+            <div id="split-layout-container" class="split-layout hidden">
+                <!-- Left Panel: Settings & Candidates -->
+                <section class="settings-candidate-section" id="settings-candidate-section">
+                    <div class="settings-panel">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="global-exclude-toggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                        <span class="setting-label">当選者を全登壇者から除外</span>
                     </div>
-                    <div class="search-container">
-                        <input type="text" id="candidate-search" placeholder="名前を検索..." class="search-input">
-                    </div>
-                    <div class="candidate-list" id="candidate-list">
-                        <!-- Dynamic checkboxes -->
-                    </div>
-                </div>
-            </section>
 
-            <!-- Roulette Section -->
-            <section class="roulette-section hidden" id="roulette-section">
-                <div class="roulette-container">
-                    <div class="roulette-wheel-outer">
-                        <div class="pointer">▼</div>
-                        <canvas id="roulette-canvas" width="500" height="500"></canvas>
+                    <div class="candidate-list-container">
+                        <div class="candidate-header">
+                            <h3>Candidates <span id="candidate-count">(0)</span></h3>
+                            <button id="toggle-list-btn" class="btn-text">▼</button>
+                        </div>
+                        <div class="search-container">
+                            <input type="text" id="candidate-search" placeholder="名前を検索..." class="search-input">
+                        </div>
+                        <div class="candidate-list" id="candidate-list">
+                            <!-- Dynamic checkboxes -->
+                        </div>
                     </div>
-                </div>
+                </section>
 
-                <div class="controls">
-                    <button id="spin-btn" class="btn btn-primary">START</button>
-                    <button id="reset-btn" class="btn btn-secondary">RESET</button>
-                </div>
-            </section>
+                <!-- Right Panel: Roulette -->
+                <section class="roulette-section" id="roulette-section">
+                    <div class="roulette-container">
+                        <div class="roulette-wheel-outer">
+                            <div class="pointer">▼</div>
+                            <canvas id="roulette-canvas" width="500" height="500"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="controls">
+                        <button id="spin-btn" class="btn btn-primary">START</button>
+                        <button id="reset-btn" class="btn btn-secondary">RESET</button>
+                    </div>
+                </section>
+            </div>
         </main>
 
         <!-- Result Modal -->

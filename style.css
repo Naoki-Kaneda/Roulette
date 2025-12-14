@@ -555,5 +555,41 @@ input:checked+.slider:before {
 }
 
 .search-input::placeholder {
-    color: var(--text-muted);
-}
+
+    /* Split Layout */
+    .split-layout {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        width: 100%;
+        max-width: 1200px;
+        align-items: center;
+        animation: fadeIn 0.8s ease-out;
+    }
+
+    @media (min-width: 900px) {
+        .split-layout {
+            flex-direction: row;
+            align-items: flex-start;
+            justify-content: center;
+            gap: 3rem;
+        }
+
+        .settings-candidate-section {
+            flex: 1;
+            max-width: 400px;
+            position: sticky;
+            /* Keep it visible while scrolling if needed */
+            top: 2rem;
+        }
+
+        .roulette-section {
+            flex: 2;
+            max-width: 600px;
+        }
+
+        .candidate-list {
+            max-height: 500px;
+            /* Fixed height for scrollable list */
+        }
+    }

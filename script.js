@@ -122,11 +122,22 @@ function parseCSV(text) {
     }
 
     initPresenterTabs();
+
+    // Hide upload, show main UI
     document.getElementById('upload-section').classList.add('hidden');
     presenterSection.classList.remove('hidden');
-    if (settingsSection) settingsSection.classList.remove('hidden');
-    rouletteSection.classList.remove('hidden');
 
+    // Show split layout container
+    const splitLayout = document.getElementById('split-layout-container');
+    if (splitLayout) {
+        splitLayout.classList.remove('hidden');
+    }
+
+    // settings and roulette are now inside split layout, so we don't need to toggle them individually if they are not hidden by default inside the wrapper.
+    // However, in HTML structure I removed 'hidden' class from them? 
+    // Let's check HTML. I removed 'hidden' class in the replacement content. Good.
+
+    // Default to first presenter in the set
     if (presenters.size > 0) {
         const firstPresenter = Array.from(presenters)[0];
         selectPresenter(firstPresenter);
@@ -313,8 +324,15 @@ function resetApp() {
     csvInput.value = '';
     document.getElementById('upload-section').classList.remove('hidden');
     presenterSection.classList.add('hidden');
+
+    // Hide split layout
+    const splitLayout = document.getElementById('split-layout-container');
+    if (splitLayout) splitLayout.classList.add('hidden');
+
+    // Keep old logic for safety if ID missing, but mostly just wrapper
     if (settingsSection) settingsSection.classList.add('hidden');
     rouletteSection.classList.add('hidden');
+
     resultModal.classList.add('hidden');
     canvas.style.transition = 'none';
     canvas.style.transform = 'rotate(0deg)';
