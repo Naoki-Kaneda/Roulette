@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roulette Questioner Selector</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <h1>Roulette Selector</h1>
+            <p>質問者をランダムに選出します</p>
+        </header>
+
+        <main>
+            <!-- File Upload Section -->
+            <section class="upload-section" id="upload-section">
+                <div class="file-drop-area" id="drop-area">
+                    <span class="file-icon">📂</span>
+                    <span class="file-msg">CSVファイルをドラッグ＆ドロップ</span>
+                    <span class="file-sub">またはクリックして選択</span>
+                    <input class="file-input" type="file" id="csv-input" accept=".csv">
+                </div>
+                <div class="format-hint">
+                    <small>フォーマット: 名前, 質問内容, 宛先発表者名</small>
+                </div>
+            </section>
+
+            <!-- Presenter Selection -->
+            <section class="presenter-section hidden" id="presenter-section">
+                <h2>Target Presenter</h2>
+                <div class="presenter-tabs" id="presenter-tabs">
+                    <!-- Dynamic buttons will be inserted here -->
+                </div>
+            </section>
+
+            <!-- Settings & Candidates Section -->
+            <section class="settings-candidate-section hidden" id="settings-candidate-section">
+                <div class="settings-panel">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="global-exclude-toggle" checked>
+                        <span class="slider"></span>
+                    </label>
+                    <span class="setting-label">当選者を全登壇者から除外</span>
+                </div>
+
+                <div class="candidate-list-container">
+                    <div class="candidate-header">
+                        <h3>Candidates <span id="candidate-count">(0)</span></h3>
+                        <button id="toggle-list-btn" class="btn-text">▼</button>
+                    </div>
+                    <div class="candidate-list" id="candidate-list">
+                        <!-- Dynamic checkboxes -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Roulette Section -->
+            <section class="roulette-section hidden" id="roulette-section">
+                <div class="roulette-container">
+                    <div class="roulette-wheel-outer">
+                        <div class="pointer">▼</div>
+                        <canvas id="roulette-canvas" width="500" height="500"></canvas>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <button id="spin-btn" class="btn btn-primary">START</button>
+                    <button id="reset-btn" class="btn btn-secondary">RESET</button>
+                </div>
+            </section>
+        </main>
+
+        <!-- Result Modal -->
+        <div id="result-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Selected Questioner</h3>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="result-name" id="result-name"></div>
+                    <div class="result-question" id="result-question"></div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary close-modal-btn">OK</button>
+                </div>
+            </div>
+            <div class="confetti-container" id="confetti-container"></div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>

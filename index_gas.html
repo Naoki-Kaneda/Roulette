@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Roulette Questioner Selector</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --primary: #6366f1;
+            --primary-glow: rgba(99, 102, 241, 0.5);
+            --secondary: #ec4899;
+            --secondary-glow: rgba(236, 72, 153, 0.5);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --font-heading: 'Outfit', sans-serif;
+            --font-body: 'Zen Kaku Gothic New', sans-serif;
+            --glass: rgba(30, 41, 59, 0.7);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image:
+                radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(236, 72, 153, 0.15) 0%, transparent 20%);
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 800px;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .app-header {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .app-header h1 {
+            font-family: var(--font-heading);
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.05em;
+            margin-bottom: 0.5rem;
+            filter: drop-shadow(0 0 10px var(--primary-glow));
+        }
+
+        .app-header p {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        /* Upload Section */
+        .upload-section {
+            width: 100%;
+            max-width: 600px;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .file-drop-area {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            border: 2px dashed var(--border);
+            border-radius: 1rem;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .file-drop-area:hover,
+        .file-drop-area.dragover {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
+        }
+
+        .file-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .file-msg {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .file-sub {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .file-input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .format-hint {
+            text-align: center;
+            margin-top: 0.5rem;
+            color: var(--text-muted);
+        }
+
+        /* Presenter Section */
+        .presenter-section {
+            width: 100%;
+            text-align: center;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        .presenter-section h2 {
+            font-family: var(--font-heading);
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 1rem;
+        }
+
+        .presenter-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .presenter-tab {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 0.75rem 1.5rem;
+            border-radius: 2rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: var(--font-body);
+            font-weight: 700;
+        }
+
+        .presenter-tab:hover {
+            background: var(--border);
+        }
+
+        .presenter-tab.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-color: transparent;
+            box-shadow: 0 4px 15px var(--primary-glow);
+            transform: translateY(-2px);
+        }
+
+        /* Settings & Candidates */
+        .settings-candidate-section {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .settings-panel {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            padding: 0.5rem;
+            background: var(--glass);
+            border-radius: 2rem;
+            border: 1px solid var(--border);
+        }
+
+        .setting-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--bg-card);
+            transition: .4s;
+            border-radius: 24px;
+            border: 1px solid var(--border);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: var(--text-muted);
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(16px);
+            background-color: white;
+        }
+
+        .candidate-list-container {
+            background: var(--bg-card);
+            border-radius: 1rem;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .candidate-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+        }
+
+        .candidate-header h3 {
+            font-size: 1rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .btn-text {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .candidate-list {
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+            transition: max-height 0.3s ease;
+        }
+
+        .candidate-list.collapsed {
+            max-height: 0;
+            padding: 0;
+        }
+
+        .candidate-item {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .candidate-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .candidate-item input[type="checkbox"] {
+            margin-right: 1rem;
+            accent-color: var(--primary);
+        }
+
+        .candidate-item.winner {
+            opacity: 0.5;
+            text-decoration: line-through;
+            color: var(--text-muted);
+        }
+
+        /* Roulette Section */
+        .roulette-section {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+            animation: zoomIn 0.8s ease-out;
+        }
+
+        .roulette-container {
+            position: relative;
+            width: 500px;
+            height: 500px;
+            max-width: 90vw;
+            max-height: 90vw;
+        }
+
+        .roulette-wheel-outer {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(0, 0, 0, 0.5);
+            background: var(--bg-card);
+        }
+
+        #roulette-canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+        }
+
+        .pointer {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3rem;
+            color: var(--text-main);
+            z-index: 10;
+            text-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            filter: drop-shadow(0 0 5px var(--secondary));
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            font-family: var(--font-heading);
+            font-size: 1.2rem;
+            font-weight: 700;
+            padding: 1rem 3rem;
+            border: none;
+            border-radius: 3rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            box-shadow: 0 10px 20px -5px var(--primary-glow);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.95);
+            box-shadow: 0 5px 10px -5px var(--primary-glow);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--border);
+            color: var(--text-muted);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--text-main);
+            color: var(--text-main);
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 2rem;
+            border-radius: 1.5rem;
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            transform: scale(1);
+            animation: popUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1rem;
+        }
+
+        .modal-header h3 {
+            font-family: var(--font-heading);
+            color: var(--text-muted);
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .result-name {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(to right, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .result-question {
+            font-size: 1.2rem;
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes zoomIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes popUp {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <h1>Roulette Selector</h1>
+            <p>質問者をランダムに選出します</p>
+        </header>
+
+        <main>
+            <!-- File Upload Section -->
+            <section class="upload-section" id="upload-section">
+                <div class="file-drop-area" id="drop-area">
+                    <span class="file-icon">📂</span>
+                    <span class="file-msg">CSVファイルをドラッグ＆ドロップ</span>
+                    <span class="file-sub">またはクリックして選択</span>
+                    <input class="file-input" type="file" id="csv-input" accept=".csv">
+                </div>
+                <div class="format-hint">
+                    <small>フォーマット: 名前, 質問内容, 宛先発表者名</small>
+                </div>
+            </section>
+
+            <!-- Presenter Selection -->
+            <section class="presenter-section hidden" id="presenter-section">
+                <h2>Target Presenter</h2>
+                <div class="presenter-tabs" id="presenter-tabs">
+                    <!-- Dynamic buttons will be inserted here -->
+                </div>
+            </section>
+
+            <!-- Settings & Candidates Section -->
+            <section class="settings-candidate-section hidden" id="settings-candidate-section">
+                <div class="settings-panel">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="global-exclude-toggle" checked>
+                        <span class="slider"></span>
+                    </label>
+                    <span class="setting-label">当選者を全登壇者から除外</span>
+                </div>
+
+                <div class="candidate-list-container">
+                    <div class="candidate-header">
+                        <h3>Candidates <span id="candidate-count">(0)</span></h3>
+                        <button id="toggle-list-btn" class="btn-text">▼</button>
+                    </div>
+                    <div class="candidate-list" id="candidate-list">
+                        <!-- Dynamic checkboxes -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Roulette Section -->
+            <section class="roulette-section hidden" id="roulette-section">
+                <div class="roulette-container">
+                    <div class="roulette-wheel-outer">
+                        <div class="pointer">▼</div>
+                        <canvas id="roulette-canvas" width="500" height="500"></canvas>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <button id="spin-btn" class="btn btn-primary">START</button>
+                    <button id="reset-btn" class="btn btn-secondary">RESET</button>
+                </div>
+            </section>
+        </main>
+
+        <!-- Result Modal -->
+        <div id="result-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Selected Questioner</h3>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="result-name" id="result-name"></div>
+                    <div class="result-question" id="result-question"></div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary close-modal-btn">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const csvInput = document.getElementById('csv-input');
+        const dropArea = document.getElementById('drop-area');
+        const presenterSection = document.getElementById('presenter-section');
+        const presenterTabs = document.getElementById('presenter-tabs');
+        const settingsSection = document.getElementById('settings-candidate-section');
+        const globalExcludeToggle = document.getElementById('global-exclude-toggle');
+        const candidateList = document.getElementById('candidate-list');
+        const candidateCount = document.getElementById('candidate-count');
+        const toggleListBtn = document.getElementById('toggle-list-btn');
+        const rouletteSection = document.getElementById('roulette-section');
+        const canvas = document.getElementById('roulette-canvas');
+        const ctx = canvas.getContext('2d');
+        const spinBtn = document.getElementById('spin-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const resultModal = document.getElementById('result-modal');
+        const resultName = document.getElementById('result-name');
+        const resultQuestion = document.getElementById('result-question');
+        const closeModalBtns = document.querySelectorAll('.close-modal, .close-modal-btn');
+
+        // State
+        let allParticipants = [];
+        let currentParticipants = [];
+        let presenters = new Set();
+        let currentPresenter = null;
+        let currentRotation = 0;
+        let isSpinning = false;
+        let globalWinners = new Set();
+        let excludedNames = new Set();
+        let wheelColors = [
+            '#6366f1', '#ec4899', '#8b5cf6', '#f43f5e', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'
+        ];
+
+        // Event Listeners
+        dropArea.addEventListener('click', () => csvInput.click());
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+        ['dragenter', 'dragover'].forEach(eventName => { dropArea.addEventListener(eventName, highlight, false); });
+        ['dragleave', 'drop'].forEach(eventName => { dropArea.addEventListener(eventName, unhighlight, false); });
+
+        function highlight(e) { dropArea.classList.add('dragover'); }
+        function unhighlight(e) { dropArea.classList.remove('dragover'); }
+
+        dropArea.addEventListener('drop', handleDrop, false);
+        csvInput.addEventListener('change', handleFiles, false);
+        spinBtn.addEventListener('click', spinRoulette);
+        resetBtn.addEventListener('click', resetApp);
+        closeModalBtns.forEach(btn => btn.addEventListener('click', closeResult));
+
+        globalExcludeToggle.addEventListener('change', () => {
+            selectPresenter(currentPresenter);
+        });
+
+        toggleListBtn.addEventListener('click', () => {
+            candidateList.classList.toggle('collapsed');
+            toggleListBtn.style.transform = candidateList.classList.contains('collapsed') ? 'rotate(-90deg)' : 'rotate(0deg)';
+        });
+        document.querySelector('.candidate-header').addEventListener('click', () => {
+            candidateList.classList.toggle('collapsed');
+            const isCollapsed = candidateList.classList.contains('collapsed');
+            toggleListBtn.style.transform = isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)';
+        });
+
+        // Core Functions
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles({ target: { files: files } });
+        }
+
+        function handleFiles(e) {
+            const file = e.target.files[0];
+            if (file && (file.type === 'text/csv' || file.name.endsWith('.csv'))) {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    parseCSV(event.target.result);
+                };
+                reader.readAsText(file);
+            } else {
+                alert('Please upload a valid CSV file.');
+            }
+        }
+
+        function parseCSV(text) {
+            const lines = text.split(/\r\n|\n/);
+            allParticipants = [];
+            presenters = new Set();
+            globalWinners = new Set();
+            excludedNames = new Set();
+
+            lines.forEach(line => {
+                if (!line.trim()) return;
+                const parts = line.split(',');
+                const name = parts[0] ? parts[0].trim() : '';
+                const question = parts[1] ? parts[1].trim() : '';
+                const rawTarget = parts[2] ? parts[2].trim() : '';
+                const target = rawTarget || 'All';
+
+                if (name && question) {
+                    allParticipants.push({ name, question, target });
+                    presenters.add(target);
+                }
+            });
+
+            if (allParticipants.length === 0) {
+                alert('No valid data found in CSV.');
+                return;
+            }
+
+            initPresenterTabs();
+            document.getElementById('upload-section').classList.add('hidden');
+            presenterSection.classList.remove('hidden');
+            settingsSection.classList.remove('hidden');
+            rouletteSection.classList.remove('hidden');
+
+            if (presenters.size > 0) {
+                const firstPresenter = Array.from(presenters)[0];
+                selectPresenter(firstPresenter);
+            }
+        }
+
+        function initPresenterTabs() {
+            presenterTabs.innerHTML = '';
+            presenters.forEach(presenter => {
+                const btn = document.createElement('button');
+                btn.className = 'presenter-tab';
+                btn.textContent = presenter;
+                btn.addEventListener('click', () => selectPresenter(presenter));
+                presenterTabs.appendChild(btn);
+            });
+        }
+
+        function selectPresenter(presenter) {
+            if (!presenter) return;
+            currentPresenter = presenter;
+
+            document.querySelectorAll('.presenter-tab').forEach(btn => {
+                if (btn.textContent === presenter) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+
+            let potentialCandidates = [];
+            if (presenter === 'All') {
+                potentialCandidates = [...allParticipants];
+            } else {
+                potentialCandidates = allParticipants.filter(p => p.target === presenter);
+            }
+
+            const isGlobalExclude = globalExcludeToggle.checked;
+
+            currentParticipants = potentialCandidates.filter(p => {
+                if (excludedNames.has(p.name)) return false;
+                if (isGlobalExclude && globalWinners.has(p.name)) return false;
+                return true;
+            });
+
+            candidateCount.textContent = `(${currentParticipants.length})`;
+            renderCandidateList(potentialCandidates);
+            drawWheel();
+        }
+
+        function renderCandidateList(candidates) {
+            candidateList.innerHTML = '';
+            candidates.forEach(p => {
+                const isGlobalWinner = globalWinners.has(p.name);
+                const isExcluded = excludedNames.has(p.name);
+                const isGlobalExcludeOn = globalExcludeToggle.checked;
+
+                const item = document.createElement('div');
+                item.className = 'candidate-item';
+                if (isGlobalWinner) item.classList.add('winner');
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.checked = !isExcluded;
+
+                checkbox.addEventListener('change', (e) => {
+                    if (e.target.checked) {
+                        excludedNames.delete(p.name);
+                    } else {
+                        excludedNames.add(p.name);
+                    }
+                    selectPresenter(currentPresenter);
+                });
+
+                const label = document.createElement('span');
+                label.textContent = p.name + (isGlobalWinner ? ' (当選済)' : '');
+
+                item.appendChild(checkbox);
+                item.appendChild(label);
+                candidateList.appendChild(item);
+            });
+        }
+
+        function drawWheel() {
+            if (currentParticipants.length === 0) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                return;
+            }
+
+            const arc = Math.PI * 2 / currentParticipants.length;
+            const radius = canvas.width / 2;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.translate(radius, radius);
+            ctx.rotate(currentRotation);
+
+            currentParticipants.forEach((participant, i) => {
+                const angle = i * arc;
+                ctx.beginPath();
+                ctx.fillStyle = wheelColors[i % wheelColors.length];
+                ctx.moveTo(0, 0);
+                ctx.arc(0, 0, radius, angle, angle + arc);
+                ctx.lineTo(0, 0);
+                ctx.fill();
+
+                ctx.save();
+                ctx.fillStyle = "white";
+                ctx.font = "bold 20px 'Zen Kaku Gothic New'";
+                ctx.textAlign = "right";
+                ctx.textBaseline = "middle";
+                ctx.rotate(angle + arc / 2);
+                ctx.fillText(participant.name, radius - 20, 0);
+                ctx.restore();
+            });
+        }
+
+        function spinRoulette() {
+            if (isSpinning || currentParticipants.length === 0) return;
+            isSpinning = true;
+            spinBtn.disabled = true;
+
+            const minSpins = 5;
+            const extraSpins = Math.random() * 3;
+            const totalRotationDegrees = (minSpins + extraSpins) * 360;
+            const newRotation = currentRotation + totalRotationDegrees;
+
+            canvas.style.transition = 'transform 5s cubic-bezier(0.15, 0, 0.15, 1)';
+            canvas.style.transform = `rotate(${newRotation}deg)`;
+            currentRotation = newRotation;
+
+            setTimeout(() => { finishSpin(newRotation); }, 5000);
+        }
+
+        function finishSpin(finalRotation) {
+            isSpinning = false;
+            spinBtn.disabled = false;
+            const degrees = finalRotation % 360;
+            let targetAngle = (270 - degrees) % 360;
+            if (targetAngle < 0) targetAngle += 360;
+
+            const arcDegrees = 360 / currentParticipants.length;
+            const index = Math.floor(targetAngle / arcDegrees);
+
+            const winner = currentParticipants[index];
+            if (winner) {
+                globalWinners.add(winner.name);
+                selectPresenter(currentPresenter);
+                showResult(winner);
+            }
+        }
+
+        function showResult(winner) {
+            if (!winner) return;
+            resultName.textContent = winner.name;
+            resultQuestion.textContent = winner.question;
+            resultModal.classList.remove('hidden');
+        }
+
+        function closeResult() { resultModal.classList.add('hidden'); }
+
+        function resetApp() {
+            csvInput.value = '';
+            document.getElementById('upload-section').classList.remove('hidden');
+            presenterSection.classList.add('hidden');
+            settingsSection.classList.add('hidden');
+            rouletteSection.classList.add('hidden');
+            resultModal.classList.add('hidden');
+            canvas.style.transition = 'none';
+            canvas.style.transform = 'rotate(0deg)';
+            currentRotation = 0;
+            allParticipants = [];
+            currentParticipants = [];
+        }
+    </script>
+</body>
+
+</html>
