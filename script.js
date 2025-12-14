@@ -7,6 +7,7 @@ const settingsSection = document.getElementById('settings-candidate-section');
 const globalExcludeToggle = document.getElementById('global-exclude-toggle');
 const candidateList = document.getElementById('candidate-list');
 const candidateCount = document.getElementById('candidate-count');
+const candidateSearch = document.getElementById('candidate-search'); // New
 const toggleListBtn = document.getElementById('toggle-list-btn');
 const rouletteSection = document.getElementById('roulette-section');
 const canvas = document.getElementById('roulette-canvas');
@@ -172,9 +173,29 @@ function selectPresenter(presenter) {
     drawWheel();
 }
 
+
+if (candidateSearch) {
+    candidateSearch.addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase();
+        const items = candidateList.querySelectorAll('.candidate-item');
+        items.forEach(item => {
+            const text = item.textContent.toLowerCase();
+            if (text.includes(term)) {
+                item.style.display = 'flex';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    });
+}
+
 function renderCandidateList(candidates) {
     if (!candidateList) return;
     candidateList.innerHTML = '';
+
+    // Check if there is an active search term to apply immediately (e.g. after re-render)
+    const searchTerm = candidateSearch ? candidateSearch.value.toLowerCase() : '';
+
     candidates.forEach(p => {
         const isGlobalWinner = globalWinners.has(p.name);
         const isExcluded = excludedNames.has(p.name);
@@ -182,6 +203,11 @@ function renderCandidateList(candidates) {
         const item = document.createElement('div');
         item.className = 'candidate-item';
         if (isGlobalWinner) item.classList.add('winner');
+
+        // Apply filter immediately
+        if (searchTerm && !p.name.toLowerCase().includes(searchTerm)) {
+            item.style.display = 'none';
+        }
 
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';

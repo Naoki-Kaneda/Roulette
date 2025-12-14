@@ -538,6 +538,35 @@
                 transform: scale(1);
             }
         }
+
+        /* Search Input */
+        .search-container {
+            padding: 0.5rem 1rem;
+            border-bottom: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border);
+            background: var(--bg-dark);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px var(--primary-glow);
+        }
+
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
     </style>
 </head>
 
@@ -587,6 +616,9 @@
                     <div class="candidate-header">
                         <h3>Candidates <span id="candidate-count">(0)</span></h3>
                         <button id="toggle-list-btn" class="btn-text">▼</button>
+                    </div>
+                    <div class="search-container">
+                        <input type="text" id="candidate-search" placeholder="名前を検索..." class="search-input">
                     </div>
                     <div class="candidate-list" id="candidate-list">
                         <!-- Dynamic checkboxes -->
@@ -794,16 +826,37 @@
             drawWheel();
         }
 
+        const candidateSearch = document.getElementById('candidate-search');
+        if (candidateSearch) {
+            candidateSearch.addEventListener('input', (e) => {
+                const term = e.target.value.toLowerCase();
+                const items = candidateList.querySelectorAll('.candidate-item');
+                items.forEach(item => {
+                    const text = item.textContent.toLowerCase();
+                    if (text.includes(term)) {
+                        item.style.display = 'flex';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+        }
+
         function renderCandidateList(candidates) {
             candidateList.innerHTML = '';
+            const searchTerm = candidateSearch ? candidateSearch.value.toLowerCase() : '';
+
             candidates.forEach(p => {
                 const isGlobalWinner = globalWinners.has(p.name);
                 const isExcluded = excludedNames.has(p.name);
-                const isGlobalExcludeOn = globalExcludeToggle.checked;
 
                 const item = document.createElement('div');
                 item.className = 'candidate-item';
                 if (isGlobalWinner) item.classList.add('winner');
+
+                if (searchTerm && !p.name.toLowerCase().includes(searchTerm)) {
+                    item.style.display = 'none';
+                }
 
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
