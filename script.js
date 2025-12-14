@@ -32,7 +32,7 @@ let wheelColors = [
 ];
 
 // Event Listeners
-dropArea.addEventListener('click', () => csvInput.click());
+// dropArea.addEventListener('click', () => csvInput.click()); // Removed to prevent double-open
 
 ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
     dropArea.addEventListener(eventName, preventDefaults, false);
@@ -85,10 +85,10 @@ function handleFiles(e) {
     const file = e.target.files[0];
     if (file && (file.type === 'text/csv' || file.name.endsWith('.csv'))) {
         const reader = new FileReader();
-        reader.onload = function(event) {
+        reader.onload = function (event) {
             parseCSV(event.target.result);
         };
-        reader.readAsText(file); 
+        reader.readAsText(file);
     } else {
         alert('Please upload a valid CSV file.');
     }
@@ -146,7 +146,7 @@ function initPresenterTabs() {
 function selectPresenter(presenter) {
     if (!presenter) return;
     currentPresenter = presenter;
-    
+
     document.querySelectorAll('.presenter-tab').forEach(btn => {
         if (btn.textContent === presenter) btn.classList.add('active');
         else btn.classList.remove('active');
@@ -160,7 +160,7 @@ function selectPresenter(presenter) {
     }
 
     const isGlobalExclude = globalExcludeToggle ? globalExcludeToggle.checked : true;
-    
+
     currentParticipants = potentialCandidates.filter(p => {
         if (excludedNames.has(p.name)) return false;
         if (isGlobalExclude && globalWinners.has(p.name)) return false;
@@ -178,15 +178,15 @@ function renderCandidateList(candidates) {
     candidates.forEach(p => {
         const isGlobalWinner = globalWinners.has(p.name);
         const isExcluded = excludedNames.has(p.name);
-        
+
         const item = document.createElement('div');
         item.className = 'candidate-item';
         if (isGlobalWinner) item.classList.add('winner');
-        
+
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
-        checkbox.checked = !isExcluded; 
-        
+        checkbox.checked = !isExcluded;
+
         checkbox.addEventListener('change', (e) => {
             if (e.target.checked) {
                 excludedNames.delete(p.name);
@@ -213,12 +213,12 @@ function drawWheel() {
 
     const arc = Math.PI * 2 / currentParticipants.length;
     const radius = canvas.width / 2;
-    
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.translate(radius, radius);
-    ctx.rotate(currentRotation); 
-    
+    ctx.rotate(currentRotation);
+
     currentParticipants.forEach((participant, i) => {
         const angle = i * arc;
         ctx.beginPath();
@@ -227,7 +227,7 @@ function drawWheel() {
         ctx.arc(0, 0, radius, angle, angle + arc);
         ctx.lineTo(0, 0);
         ctx.fill();
-        
+
         ctx.save();
         ctx.fillStyle = "white";
         ctx.font = "bold 20px 'Zen Kaku Gothic New'";
@@ -243,13 +243,13 @@ function spinRoulette() {
     if (isSpinning || currentParticipants.length === 0) return;
     isSpinning = true;
     spinBtn.disabled = true;
-    
+
     const minSpins = 5;
     const extraSpins = Math.random() * 3;
     const totalRotationDegrees = (minSpins + extraSpins) * 360;
     const newRotation = currentRotation + totalRotationDegrees;
-    
-    canvas.style.transition = 'transform 5s cubic-bezier(0.15, 0, 0.15, 1)'; 
+
+    canvas.style.transition = 'transform 5s cubic-bezier(0.15, 0, 0.15, 1)';
     canvas.style.transform = `rotate(${newRotation}deg)`;
     currentRotation = newRotation;
 
@@ -261,21 +261,21 @@ function finishSpin(finalRotation) {
     spinBtn.disabled = false;
     const degrees = finalRotation % 360;
     let targetAngle = (270 - degrees) % 360;
-    if (targetAngle < 0) targetAngle += 360; 
-    
+    if (targetAngle < 0) targetAngle += 360;
+
     const arcDegrees = 360 / currentParticipants.length;
     const index = Math.floor(targetAngle / arcDegrees);
-    
+
     const winner = currentParticipants[index];
     if (winner) {
         globalWinners.add(winner.name);
-        selectPresenter(currentPresenter); 
+        selectPresenter(currentPresenter);
         showResult(winner);
     }
 }
 
 function showResult(winner) {
-    if (!winner) return; 
+    if (!winner) return;
     resultName.textContent = winner.name;
     resultQuestion.textContent = winner.question;
     resultModal.classList.remove('hidden');
