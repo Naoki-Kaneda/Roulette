@@ -254,7 +254,7 @@ function drawWheel() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.translate(radius, radius);
-    ctx.rotate(currentRotation);
+    // ctx.rotate(currentRotation); // Removed: Rotation is handled by CSS, and this was using degrees instead of radians
 
     currentParticipants.forEach((participant, i) => {
         const angle = i * arc;
