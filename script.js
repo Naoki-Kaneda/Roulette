@@ -96,17 +96,55 @@ function handleFiles(e) {
 }
 
 function parseCSV(text) {
-    const lines = text.split(/\r\n|\n/);
     allParticipants = [];
     presenters = new Set();
     globalWinners = new Set();
     excludedNames = new Set();
 
-    lines.forEach(line => {
-        if (!line.trim()) return;
-        const parts = line.split(',');
+    // Custom CSV parser to handle quoted fields with newlines
+    const rows = [];
+    let currentRow = [];
+    let currentField = '';
+    let insideQuotes = false;
+
+    for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const nextChar = text[i + 1];
+
+        if (char === '"') {
+            if (insideQuotes && nextChar === '"') {
+                currentField += '"';
+                i++; // Skip the escaped quote
+            } else {
+                insideQuotes = !insideQuotes;
+            }
+        } else if (char === ',' && !insideQuotes) {
+            currentRow.push(currentField);
+            currentField = '';
+        } else if ((char === '\r' || char === '\n') && !insideQuotes) {
+            if (char === '\r' && nextChar === '\n') i++; // Handle CRLF
+            // Only push if row is not empty or field is not empty (handles empty lines gently)
+            currentRow.push(currentField);
+            if (currentRow.length > 0 && (currentRow.length > 1 || currentRow[0] !== '')) {
+                 rows.push(currentRow);
+            }
+            currentRow = [];
+            currentField = '';
+        } else {
+            currentField += char;
+        }
+    }
+    // Handle the last field/row
+    if (currentField || currentRow.length > 0) {
+        currentRow.push(currentField);
+        if (currentRow.length > 0 && (currentRow.length > 1 || currentRow[0] !== '')) {
+             rows.push(currentRow);
+        }
+    }
+
+    rows.forEach(parts => {
         const name = parts[0] ? parts[0].trim() : '';
-        const question = parts[1] ? parts[1].trim() : '';
+        const question = parts[1] ? parts[1].trim() : ''; // Preserves newlines in questions
         const rawTarget = parts[2] ? parts[2].trim() : '';
         const target = rawTarget || 'All';
 
