@@ -281,29 +281,57 @@ function spinRoulette() {
     isSpinning = true;
     spinBtn.disabled = true;
 
-    const minSpins = 5;
-    const extraSpins = Math.random() * 3;
-    const totalRotationDegrees = (minSpins + extraSpins) * 360;
-    const newRotation = currentRotation + totalRotationDegrees;
+    // 1. Decide the winner first
+    const winnerIndex = Math.floor(Math.random() * currentParticipants.length);
+    const winner = currentParticipants[winnerIndex];
 
-    canvas.style.transition = 'transform 5s cubic-bezier(0.15, 0, 0.15, 1)';
-    canvas.style.transform = `rotate(${newRotation}deg)`;
-    currentRotation = newRotation;
-
-    setTimeout(() => { finishSpin(newRotation); }, 5000);
-}
-
-function finishSpin(finalRotation) {
-    isSpinning = false;
-    spinBtn.disabled = false;
-    const degrees = finalRotation % 360;
-    let targetAngle = (270 - degrees) % 360;
-    if (targetAngle < 0) targetAngle += 360;
+    // 2. Calculate the angle to stop at the center of the winner's segment
+    // Canvas draws starting at 0 rad (3 o'clock) going clockwise.
+    // The pointer is at 270 deg (12 o'clock).
+    // Segment start angle = index * arcDegrees
+    // Segment center angle = index * arcDegrees + arcDegrees / 2
 
     const arcDegrees = 360 / currentParticipants.length;
-    const index = Math.floor(targetAngle / arcDegrees);
+    const winnerCenterAngle = winnerIndex * arcDegrees + arcDegrees / 2;
 
-    const winner = currentParticipants[index];
+    // We want the winnerCenterAngle to end up at 270 degrees (pointer position)
+    // after rotation.
+    // Final Rotation Position = (270 - winnerCenterAngle)
+
+    // Add multiple full spins (at least 5)
+    // To ensure smooth forward rotation, we need to add huge multiples of 360
+    // and adjust currentRotation.
+
+    let targetRotation = 270 - winnerCenterAngle;
+
+    // Ensure we rotate forward (positive direction) significantly
+    // Find the next multiple of 360 that is greater than currentRotation + minSpins
+    const minSpins = 5;
+    const minRotation = currentRotation + (minSpins * 360);
+
+    // Adjust targetRotation to be the smallest value >= minRotation that matches the alignment
+    // We want (targetRotation % 360) to be equivalent to (270 - winnerCenterAngle) % 360
+
+    // Normalize target base
+    while (targetRotation < minRotation) {
+        targetRotation += 360;
+    }
+
+    // Add extra randomness within the segment? 
+    // No, to be safe for 100+ people, let's stop exactly at the center. 
+    // If users want wobble, we can add small random offset later, but let's fix the bug first.
+
+    canvas.style.transition = 'transform 5s cubic-bezier(0.15, 0, 0.15, 1)';
+    canvas.style.transform = `rotate(${targetRotation}deg)`;
+    currentRotation = targetRotation;
+
+    setTimeout(() => { finishSpin(winner); }, 5000);
+}
+
+function finishSpin(winner) {
+    isSpinning = false;
+    spinBtn.disabled = false;
+
     if (winner) {
         globalWinners.add(winner.name);
         selectPresenter(currentPresenter);
