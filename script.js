@@ -40,7 +40,7 @@ let wheelColors = [
 ];
 
 // Event Listeners
-// dropArea.addEventListener('click', () => csvInput.click()); // Removed to prevent double-open
+
 
 ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
     dropArea.addEventListener(eventName, preventDefaults, false);
@@ -66,19 +66,21 @@ if (globalExcludeToggle) {
     });
 }
 
-if (toggleListBtn) {
-    toggleListBtn.addEventListener('click', () => {
-        candidateList.classList.toggle('collapsed');
-        toggleListBtn.style.transform = candidateList.classList.contains('collapsed') ? 'rotate(-90deg)' : 'rotate(0deg)';
-    });
+function toggleCandidateList() {
+    candidateList.classList.toggle('collapsed');
+    const isCollapsed = candidateList.classList.contains('collapsed');
+    if (toggleListBtn) {
+        toggleListBtn.style.transform = isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)';
+    }
 }
 
-if (document.querySelector('.candidate-header')) {
-    document.querySelector('.candidate-header').addEventListener('click', () => {
-        candidateList.classList.toggle('collapsed');
-        const isCollapsed = candidateList.classList.contains('collapsed');
-        toggleListBtn.style.transform = isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)';
-    });
+if (toggleListBtn) {
+    toggleListBtn.addEventListener('click', toggleCandidateList);
+}
+
+const candidateHeader = document.querySelector('.candidate-header');
+if (candidateHeader) {
+    candidateHeader.addEventListener('click', toggleCandidateList);
 }
 
 
@@ -177,10 +179,6 @@ function parseCSV(text) {
     if (splitLayout) {
         splitLayout.classList.remove('hidden');
     }
-
-    // settings and roulette are now inside split layout, so we don't need to toggle them individually if they are not hidden by default inside the wrapper.
-    // However, in HTML structure I removed 'hidden' class from them? 
-    // Let's check HTML. I removed 'hidden' class in the replacement content. Good.
 
     // Default to first presenter in the set
     if (presenters.size > 0) {
@@ -299,7 +297,7 @@ function drawWheel() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.translate(radius, radius);
-    // ctx.rotate(currentRotation); // Removed: Rotation is handled by CSS, and this was using degrees instead of radians
+
 
     currentParticipants.forEach((participant, i) => {
         const angle = i * arc;
@@ -361,10 +359,6 @@ function spinRoulette() {
     while (targetRotation < minRotation) {
         targetRotation += 360;
     }
-
-    // Add extra randomness within the segment? 
-    // No, to be safe for 100+ people, let's stop exactly at the center. 
-    // If users want wobble, we can add small random offset later, but let's fix the bug first.
 
     canvas.style.transition = 'transform 5s cubic-bezier(0.15, 0, 0.15, 1)';
     canvas.style.transform = `rotate(${targetRotation}deg)`;
