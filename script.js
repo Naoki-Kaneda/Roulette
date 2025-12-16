@@ -66,6 +66,14 @@ if (globalExcludeToggle) {
     });
 }
 
+// New: Event listener for 'Include All'
+const includeAllToggle = document.getElementById('include-all-toggle');
+if (includeAllToggle) {
+    includeAllToggle.addEventListener('change', () => {
+        selectPresenter(currentPresenter);
+    });
+}
+
 function toggleCandidateList() {
     candidateList.classList.toggle('collapsed');
     const isCollapsed = candidateList.classList.contains('collapsed');
@@ -207,14 +215,16 @@ function selectPresenter(presenter) {
         else btn.classList.remove('active');
     });
 
+    const isGlobalExclude = globalExcludeToggle ? globalExcludeToggle.checked : true;
+    const isIncludeAll = includeAllToggle ? includeAllToggle.checked : false;
+
     let potentialCandidates = [];
-    if (presenter === 'All') {
+
+    if (isIncludeAll || presenter === 'All') {
         potentialCandidates = [...allParticipants];
     } else {
         potentialCandidates = allParticipants.filter(p => p.target === presenter);
     }
-
-    const isGlobalExclude = globalExcludeToggle ? globalExcludeToggle.checked : true;
 
     currentParticipants = potentialCandidates.filter(p => {
         if (excludedNames.has(p.name)) return false;
