@@ -29,7 +29,14 @@ let isSpinning = false;
 let globalWinners = new Set();
 let excludedNames = new Set();
 let wheelColors = [
-    '#6366f1', '#ec4899', '#8b5cf6', '#f43f5e', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'
+    '#f59e0b', // Amber (Brand)
+    '#f43f5e', // Rose
+    '#d946ef', // Fuchsia
+    '#8b5cf6', // Violet
+    '#6366f1', // Indigo
+    '#0ea5e9', // Sky
+    '#10b981', // Emerald
+    '#f97316'  // Orange
 ];
 
 // Event Listeners
@@ -126,7 +133,7 @@ function parseCSV(text) {
             // Only push if row is not empty or field is not empty (handles empty lines gently)
             currentRow.push(currentField);
             if (currentRow.length > 0 && (currentRow.length > 1 || currentRow[0] !== '')) {
-                 rows.push(currentRow);
+                rows.push(currentRow);
             }
             currentRow = [];
             currentField = '';
@@ -138,7 +145,7 @@ function parseCSV(text) {
     if (currentField || currentRow.length > 0) {
         currentRow.push(currentField);
         if (currentRow.length > 0 && (currentRow.length > 1 || currentRow[0] !== '')) {
-             rows.push(currentRow);
+            rows.push(currentRow);
         }
     }
 

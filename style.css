@@ -1,18 +1,20 @@
 :root {
-    --bg-dark: #0f172a;
-    --bg-card: #1e293b;
-    --primary: #6366f1;
-    /* Indigo */
-    --primary-glow: rgba(99, 102, 241, 0.5);
-    --secondary: #ec4899;
-    /* Pink */
-    --secondary-glow: rgba(236, 72, 153, 0.5);
+    --bg-dark: #111111;
+    /* Pure dark */
+    --bg-card: #222222;
+    /* Dark gray */
+    --primary: #f59e0b;
+    /* Orange (Tohnichi Style) */
+    --primary-glow: rgba(245, 158, 11, 0.5);
+    --secondary: #d97706;
+    /* Darker Orange/Brown for gradient */
+    --secondary-glow: rgba(217, 119, 6, 0.5);
     --text-main: #f8fafc;
-    --text-muted: #94a3b8;
-    --border: #334155;
+    --text-muted: #9ca3af;
+    --border: #404040;
     --font-heading: 'Outfit', sans-serif;
     --font-body: 'Zen Kaku Gothic New', sans-serif;
-    --glass: rgba(30, 41, 59, 0.7);
+    --glass: rgba(34, 34, 34, 0.8);
 }
 
 * {
@@ -30,8 +32,8 @@ body {
     justify-content: center;
     align-items: center;
     background-image:
-        radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 20%),
-        radial-gradient(circle at 90% 80%, rgba(236, 72, 153, 0.15) 0%, transparent 20%);
+        radial-gradient(circle at 10% 20%, rgba(245, 158, 11, 0.1) 0%, transparent 20%),
+        radial-gradient(circle at 90% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 20%);
     overflow-x: hidden;
 }
 
