@@ -320,7 +320,20 @@ function drawWheel() {
 
         ctx.save();
         ctx.fillStyle = "white";
-        ctx.font = "bold 20px 'Zen Kaku Gothic New'";
+
+        // Dynamic font sizing
+        // Calculate the chord length (approximate available width for text at the edge) or arc length
+        // Arc length = radius * angle_in_radians
+        // To be safe, we use the arc length at the text position (radius - 20)
+        // Text position radius
+        const textRadius = radius - 20;
+        const arcLength = textRadius * arc; // arc is in radians
+
+        // Heuristic: Font size should be proportional to arc length but max 20px, min 10px
+        let fontSize = Math.min(20, arcLength * 0.55); // 0.55 is a magic number to keep text inside
+        fontSize = Math.max(10, fontSize);
+
+        ctx.font = `bold ${fontSize}px 'Zen Kaku Gothic New'`;
         ctx.textAlign = "right";
         ctx.textBaseline = "middle";
         ctx.rotate(angle + arc / 2);
