@@ -404,7 +404,16 @@ function finishSpin(winner) {
 function showResult(winner) {
     if (!winner) return;
     resultName.textContent = winner.name;
-    resultQuestion.textContent = winner.question;
+
+    // Check if 'Include All' mode is active
+    const isIncludeAll = includeAllToggle && includeAllToggle.checked;
+
+    if (isIncludeAll) {
+        resultQuestion.textContent = "発表を聞いての質問をお願いします";
+    } else {
+        resultQuestion.textContent = winner.question;
+    }
+
     resultModal.classList.remove('hidden');
 }
 
