@@ -64,4 +64,4 @@
 Google Apps Scriptプロジェクトを作成し、HTMLファイルとしてこのコードを貼り付け、`doGet` 関数を設定してWebアプリとして公開してください。
 
 ---
-© 2024 木曜会 Roulette Project
+© 2024 Roulette Project
