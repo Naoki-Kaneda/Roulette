@@ -165,19 +165,14 @@ function parseCSV(text) {
         const rawTarget = parts[2] ? parts[2].trim() : '';
         const target = rawTarget || 'All';
 
-        // 4th column: Excluded Presenters (semicolon or Japanese comma separated)
-        const excludedRaw = parts[3] ? parts[3].trim() : '';
-        const excludedPresenters = new Set();
-        if (excludedRaw) {
-            // Split by semicolon, comma, or Japanese comma
-            excludedRaw.split(/[;,、]+/).forEach(ex => {
-                const exName = ex.trim();
-                if (exName) excludedPresenters.add(exName);
-            });
+        // 4th column: Exclusion Flag (x, X, or *)
+        const exclusionFlag = parts[3] ? parts[3].trim() : '';
+        if (exclusionFlag === 'x' || exclusionFlag === 'X' || exclusionFlag === '*') {
+            excludedNames.add(name);
         }
 
         if (name && question) {
-            allParticipants.push({ name, question, target, excludedPresenters });
+            allParticipants.push({ name, question, target });
             presenters.add(target);
         }
     });
@@ -240,9 +235,6 @@ function selectPresenter(presenter) {
     currentParticipants = potentialCandidates.filter(p => {
         if (excludedNames.has(p.name)) return false;
         if (isGlobalExclude && globalWinners.has(p.name)) return false;
-
-        // Check pre-exclusion from CSV
-        if (p.excludedPresenters && p.excludedPresenters.has(presenter)) return false;
 
         return true;
     });

@@ -1,0 +1,5 @@
+Name,Question,Target,Exclusion
+CommonUser,Question 1,All,
+ExcludedFlagX,Question 2,All,x
+ExcludedFlagStar,Question 3,All,*
+NormalUser,Question 4,All,
