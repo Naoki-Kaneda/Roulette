@@ -109,6 +109,16 @@
             box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
         }
 
+        .result-question {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--text-main);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            /* Preserve line breaks */
+        }
+
         .file-icon {
             font-size: 3rem;
             margin-bottom: 1rem;
@@ -626,7 +636,7 @@
                     <input class="file-input" type="file" id="csv-input" accept=".csv">
                 </div>
                 <div class="format-hint">
-                    <small>フォーマット: 名前, 質問内容, 宛先発表者名</small>
+                    <small>フォーマット: 名前, 質問内容, 宛先発表者名, 除外コード:x (任意)</small>
                     <p style="margin-top: 0.5rem; color: var(--text-muted); font-size: 0.8rem; opacity: 0.8;">
                         ※ データはブラウザ内でのみ処理され、外部サーバーへの送信・保存は一切行われません。
                     </p>
@@ -797,13 +807,21 @@
             globalWinners = new Set();
             excludedNames = new Set();
 
-            lines.forEach(line => {
-                if (!line.trim()) return;
-                const parts = line.split(',');
+            const rows = text.split(/\r\n|\n/)
+                .filter(line => line.trim() !== '')
+                .map(line => line.split(','));
+
+            rows.forEach(parts => {
                 const name = parts[0] ? parts[0].trim() : '';
                 const question = parts[1] ? parts[1].trim() : '';
                 const rawTarget = parts[2] ? parts[2].trim() : '';
                 const target = rawTarget || 'All';
+
+                // 4th column: Exclusion Flag (x, X, or *)
+                const exclusionFlag = parts[3] ? parts[3].trim() : '';
+                if (exclusionFlag === 'x' || exclusionFlag === 'X' || exclusionFlag === '*') {
+                    excludedNames.add(name);
+                }
 
                 if (name && question) {
                     allParticipants.push({ name, question, target });
