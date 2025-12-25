@@ -1,4 +1,4 @@
-// DOM Elements
+// DOM要素の取得
 const csvInput = document.getElementById('csv-input');
 const dropArea = document.getElementById('drop-area');
 const presenterSection = document.getElementById('presenter-section');
@@ -19,7 +19,7 @@ const resultName = document.getElementById('result-name');
 const resultQuestion = document.getElementById('result-question');
 const closeModalBtns = document.querySelectorAll('.close-modal, .close-modal-btn');
 
-// State
+// 状態管理変数
 let allParticipants = [];
 let currentParticipants = [];
 let presenters = new Set();
@@ -39,7 +39,7 @@ let wheelColors = [
     '#f97316'  // Orange
 ];
 
-// Event Listeners
+// イベントリスナー設定
 
 
 ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -59,14 +59,14 @@ spinBtn.addEventListener('click', spinRoulette);
 resetBtn.addEventListener('click', resetApp);
 closeModalBtns.forEach(btn => btn.addEventListener('click', closeResult));
 
-// Toggle Event Listeners
+// 切り替えスイッチのイベントリスナー
 if (globalExcludeToggle) {
     globalExcludeToggle.addEventListener('change', () => {
         selectPresenter(currentPresenter);
     });
 }
 
-// New: Event listener for 'Include All'
+// 「全データから抽選」のイベントリスナー
 const includeAllToggle = document.getElementById('include-all-toggle');
 if (includeAllToggle) {
     includeAllToggle.addEventListener('change', () => {
@@ -92,7 +92,7 @@ if (candidateHeader) {
 }
 
 
-// Core Functions
+// 主要関数
 function handleDrop(e) {
     const dt = e.dataTransfer;
     const files = dt.files;
@@ -118,7 +118,7 @@ function parseCSV(text) {
     globalWinners = new Set();
     excludedNames = new Set();
 
-    // Custom CSV parser to handle quoted fields with newlines
+    // 改行を含む引用符付きフィールドを処理するカスタムCSVパーサー
     const rows = [];
     let currentRow = [];
     let currentField = '';
@@ -131,7 +131,7 @@ function parseCSV(text) {
         if (char === '"') {
             if (insideQuotes && nextChar === '"') {
                 currentField += '"';
-                i++; // Skip the escaped quote
+                i++; // エスケープされた引用符をスキップ
             } else {
                 insideQuotes = !insideQuotes;
             }
@@ -139,8 +139,8 @@ function parseCSV(text) {
             currentRow.push(currentField);
             currentField = '';
         } else if ((char === '\r' || char === '\n') && !insideQuotes) {
-            if (char === '\r' && nextChar === '\n') i++; // Handle CRLF
-            // Only push if row is not empty or field is not empty (handles empty lines gently)
+            if (char === '\r' && nextChar === '\n') i++; // CRLFの処理
+            // 行またはフィールドが空でない場合のみ追加（空行を無視）
             currentRow.push(currentField);
             if (currentRow.length > 0 && (currentRow.length > 1 || currentRow[0] !== '')) {
                 rows.push(currentRow);
@@ -151,7 +151,7 @@ function parseCSV(text) {
             currentField += char;
         }
     }
-    // Handle the last field/row
+    // 最後のフィールド/行の処理
     if (currentField || currentRow.length > 0) {
         currentRow.push(currentField);
         if (currentRow.length > 0 && (currentRow.length > 1 || currentRow[0] !== '')) {
@@ -161,11 +161,11 @@ function parseCSV(text) {
 
     rows.forEach(parts => {
         const name = parts[0] ? parts[0].trim() : '';
-        const question = parts[1] ? parts[1].trim() : ''; // Preserves newlines in questions
+        const question = parts[1] ? parts[1].trim() : ''; // 質問内の改行は保持される
         const rawTarget = parts[2] ? parts[2].trim() : '';
         const target = rawTarget || 'All';
 
-        // 4th column: Exclusion Flag (x, X, or *)
+        // 4列目: 除外フラグ (x, X, または *)
         const exclusionFlag = parts[3] ? parts[3].trim() : '';
         if (exclusionFlag === 'x' || exclusionFlag === 'X' || exclusionFlag === '*') {
             excludedNames.add(name);
@@ -184,17 +184,17 @@ function parseCSV(text) {
 
     initPresenterTabs();
 
-    // Hide upload, show main UI
+    // アップロード画面を隠し、メインUIを表示
     document.getElementById('upload-section').classList.add('hidden');
     presenterSection.classList.remove('hidden');
 
-    // Show split layout container
+    // 分割レイアウト（2カラム）を表示
     const splitLayout = document.getElementById('split-layout-container');
     if (splitLayout) {
         splitLayout.classList.remove('hidden');
     }
 
-    // Default to first presenter in the set
+    // 最初の発表者をデフォルトで選択
     if (presenters.size > 0) {
         const firstPresenter = Array.from(presenters)[0];
         selectPresenter(firstPresenter);
@@ -264,7 +264,7 @@ function renderCandidateList(candidates) {
     if (!candidateList) return;
     candidateList.innerHTML = '';
 
-    // Check if there is an active search term to apply immediately (e.g. after re-render)
+    // 検索語句がある場合は即座にフィルタリングを適用（再描画時など）
     const searchTerm = candidateSearch ? candidateSearch.value.toLowerCase() : '';
 
     candidates.forEach(p => {
@@ -275,7 +275,7 @@ function renderCandidateList(candidates) {
         item.className = 'candidate-item';
         if (isGlobalWinner) item.classList.add('winner');
 
-        // Apply filter immediately
+        // フィルタリングを適用
         if (searchTerm && !p.name.toLowerCase().includes(searchTerm)) {
             item.style.display = 'none';
         }
@@ -328,16 +328,13 @@ function drawWheel() {
         ctx.save();
         ctx.fillStyle = "white";
 
-        // Dynamic font sizing
-        // Calculate the chord length (approximate available width for text at the edge) or arc length
-        // Arc length = radius * angle_in_radians
-        // To be safe, we use the arc length at the text position (radius - 20)
-        // Text position radius
+        // フォントサイズの動的調整
+        // 円弧の長さに基づいて計算（テキスト配置位置の半径を使用）
         const textRadius = radius - 20;
-        const arcLength = textRadius * arc; // arc is in radians
+        const arcLength = textRadius * arc; // arcはラジアン
 
-        // Heuristic: Font size should be proportional to arc length but max 20px, min 10px
-        let fontSize = Math.min(20, arcLength * 0.55); // 0.55 is a magic number to keep text inside
+        // ヒューリスティック: フォントサイズは円弧の長さに比例させるが、最大20px、最小10pxとする
+        let fontSize = Math.min(20, arcLength * 0.55); // 0.55はテキストを収めるための調整値
         fontSize = Math.max(10, fontSize);
 
         ctx.font = `bold ${fontSize}px 'Zen Kaku Gothic New'`;
@@ -354,38 +351,36 @@ function spinRoulette() {
     isSpinning = true;
     spinBtn.disabled = true;
 
-    // 1. Decide the winner first
+    // 1. 最初に当選者を決定
     const winnerIndex = Math.floor(Math.random() * currentParticipants.length);
     const winner = currentParticipants[winnerIndex];
 
-    // 2. Calculate the angle to stop at the center of the winner's segment
-    // Canvas draws starting at 0 rad (3 o'clock) going clockwise.
-    // The pointer is at 270 deg (12 o'clock).
-    // Segment start angle = index * arcDegrees
-    // Segment center angle = index * arcDegrees + arcDegrees / 2
+    // 2. 当選者のセグメントの中心で停止するように角度を計算
+    // Canvasは0ラジアン（3時方向）から時計回りに描画される
+    // ポインターは270度（12時方向）にある
+    // セグメント開始角度 = index * arcDegrees
+    // セグメント中心角度 = index * arcDegrees + arcDegrees / 2
 
     const arcDegrees = 360 / currentParticipants.length;
     const winnerCenterAngle = winnerIndex * arcDegrees + arcDegrees / 2;
 
-    // We want the winnerCenterAngle to end up at 270 degrees (pointer position)
-    // after rotation.
-    // Final Rotation Position = (270 - winnerCenterAngle)
+    // 回転後のwinnerCenterAngleが270度（ポインター位置）に来るようにする
+    // 最終回転位置 = (270 - winnerCenterAngle)
 
-    // Add multiple full spins (at least 5)
-    // To ensure smooth forward rotation, we need to add huge multiples of 360
-    // and adjust currentRotation.
+    // 複数回の回転を追加（最低5回転）
+    // スムーズな正方向回転のために、360の倍数を加算し、currentRotationを調整する
 
     let targetRotation = 270 - winnerCenterAngle;
 
-    // Ensure we rotate forward (positive direction) significantly
-    // Find the next multiple of 360 that is greater than currentRotation + minSpins
+    // 正方向（時計回り）に確実に回転させる
+    // currentRotation + minSpins よりも大きい、次の360の倍数を見つける
     const minSpins = 5;
     const minRotation = currentRotation + (minSpins * 360);
 
-    // Adjust targetRotation to be the smallest value >= minRotation that matches the alignment
-    // We want (targetRotation % 360) to be equivalent to (270 - winnerCenterAngle) % 360
+    // アライメントを維持しつつ、minRotation以上になる最小の値をtargetRotationに設定
+    // (targetRotation % 360) が (270 - winnerCenterAngle) % 360 と等しくなるようにする
 
-    // Normalize target base
+    // 目標値を正規化
     while (targetRotation < minRotation) {
         targetRotation += 360;
     }
@@ -422,11 +417,11 @@ function resetApp() {
     document.getElementById('upload-section').classList.remove('hidden');
     presenterSection.classList.add('hidden');
 
-    // Hide split layout
+    // 分割レイアウトを非表示
     const splitLayout = document.getElementById('split-layout-container');
     if (splitLayout) splitLayout.classList.add('hidden');
 
-    // Keep old logic for safety if ID missing, but mostly just wrapper
+    // IDが見つからない場合の安全策（主にラッパー）
     if (settingsSection) settingsSection.classList.add('hidden');
     rouletteSection.classList.add('hidden');
 

@@ -49,7 +49,7 @@
         .app-container {
             width: 100%;
             max-width: 1200px;
-            /* Widened to support split layout */
+            /* 分割レイアウト対応のため幅を拡張 */
             padding: 2rem;
             display: flex;
             flex-direction: column;
@@ -116,7 +116,7 @@
             margin-bottom: 2rem;
             line-height: 1.6;
             white-space: pre-wrap;
-            /* Preserve line breaks */
+            /* 改行を保持 */
         }
 
         .file-icon {
@@ -602,7 +602,7 @@
                 flex: 1;
                 max-width: 400px;
                 position: sticky;
-                /* Keep it visible while scrolling if needed */
+                /* 必要に応じてスクロール中も表示 */
                 top: 2rem;
             }
 
@@ -613,7 +613,7 @@
 
             .candidate-list {
                 max-height: 500px;
-                /* Fixed height for scrollable list */
+                /* スクロール可能なリストの高さ固定 */
             }
         }
     </style>
@@ -713,7 +713,7 @@
     </div>
 
     <script>
-        // DOM Elements
+        // DOM要素
         const csvInput = document.getElementById('csv-input');
         const dropArea = document.getElementById('drop-area');
         const presenterSection = document.getElementById('presenter-section');
@@ -733,7 +733,7 @@
         const resultQuestion = document.getElementById('result-question');
         const closeModalBtns = document.querySelectorAll('.close-modal, .close-modal-btn');
 
-        // State
+        // 状態変数
         let allParticipants = [];
         let currentParticipants = [];
         let presenters = new Set();
@@ -746,8 +746,7 @@
             '#6366f1', '#ec4899', '#8b5cf6', '#f43f5e', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'
         ];
 
-        // Event Listeners
-        // dropArea.addEventListener('click', () => csvInput.click()); // Removed to prevent double-open
+        // イベントリスナー
 
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             dropArea.addEventListener(eventName, preventDefaults, false);
@@ -780,7 +779,7 @@
             toggleListBtn.style.transform = isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)';
         });
 
-        // Core Functions
+        // 主要関数
         function handleDrop(e) {
             const dt = e.dataTransfer;
             const files = dt.files;
@@ -817,7 +816,7 @@
                 const rawTarget = parts[2] ? parts[2].trim() : '';
                 const target = rawTarget || 'All';
 
-                // 4th column: Exclusion Flag (x, X, or *)
+                // 4列目: 除外フラグ (x, X, または *)
                 const exclusionFlag = parts[3] ? parts[3].trim() : '';
                 if (exclusionFlag === 'x' || exclusionFlag === 'X' || exclusionFlag === '*') {
                     excludedNames.add(name);
@@ -838,7 +837,7 @@
             document.getElementById('upload-section').classList.add('hidden');
             presenterSection.classList.remove('hidden');
 
-            // Show split layout container
+            // 分割レイアウト（2カラム）を表示
             const splitLayout = document.getElementById('split-layout-container');
             if (splitLayout) {
                 splitLayout.classList.remove('hidden');

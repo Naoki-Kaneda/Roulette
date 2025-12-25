@@ -1,5 +1,4 @@
-Name,Question,Target,Exclusion
-User001,Question 1 single line,All,
+User001,Question 1 single line,All,x
 User002,"Question 2 line 1
 Question 2 line 2",All,
 User003,"Question 3 line 1
