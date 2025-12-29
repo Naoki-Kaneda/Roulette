@@ -114,6 +114,26 @@ if (candidateHeader) {
     candidateHeader.addEventListener('click', toggleCandidateList);
 }
 
+// 主要関数
+function handleDrop(e) {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    handleFiles({ target: { files: files } });
+}
+
+function handleFiles(e) {
+    const file = e.target.files[0];
+    if (file && (file.type === 'text/csv' || file.name.endsWith('.csv'))) {
+        const reader = new FileReader();
+        reader.onload = function (event) {
+            parseCSV(event.target.result);
+        };
+        reader.readAsText(file);
+    } else {
+        alert('Please upload a valid CSV file.');
+    }
+}
+
 function parseCSV(text) {
     allParticipants = [];
     presenters = new Set();
