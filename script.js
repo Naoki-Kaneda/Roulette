@@ -227,7 +227,16 @@ function parseCSV(text) {
     }
 }
 
-// ... (initPresenterTabs omitted, unchanged) ...
+function initPresenterTabs() {
+    presenterTabs.innerHTML = '';
+    presenters.forEach(presenter => {
+        const btn = document.createElement('button');
+        btn.className = 'presenter-tab';
+        btn.textContent = presenter;
+        btn.addEventListener('click', () => selectPresenter(presenter));
+        presenterTabs.appendChild(btn);
+    });
+}
 
 function selectPresenter(presenter) {
     if (!presenter) return;
@@ -263,7 +272,20 @@ function selectPresenter(presenter) {
     drawWheel();
 }
 
-// ... (candidateSearch listener omitted) ...
+if (candidateSearch) {
+    candidateSearch.addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase();
+        const items = candidateList.querySelectorAll('.candidate-item');
+        items.forEach(item => {
+            const text = item.textContent.toLowerCase();
+            if (text.includes(term)) {
+                item.style.display = 'flex';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    });
+}
 
 function renderCandidateList(candidates) {
     if (!candidateList) return;
