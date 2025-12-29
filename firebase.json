@@ -1,0 +1,19 @@
+{
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**",
+      "README.md",
+      "index_gas.html",
+      "generate_data.js",
+      "test_exclusion.csv",
+      "test_large_50.csv",
+      "task.md",
+      "implementation_plan.md",
+      "walkthrough.md",
+      "deployment_options.md"
+    ]
+  }
+}

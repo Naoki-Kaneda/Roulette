@@ -616,6 +616,73 @@
                 /* スクロール可能なリストの高さ固定 */
             }
         }
+
+        /* ヘルプボタン */
+        #help-btn {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(34, 34, 34, 0.8);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        #help-btn:hover {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            transform: scale(1.1);
+            box-shadow: 0 0 20px var(--primary-glow);
+        }
+
+        /* ヘルプモーダル特有のスタイル */
+        .help-step {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+        }
+
+        .help-step:last-child {
+            border-bottom: none;
+        }
+
+        .help-step h4 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .help-step p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .help-badge {
+            background: var(--primary);
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+        }
     </style>
 </head>
 
@@ -661,6 +728,13 @@
                             <span class="slider"></span>
                         </label>
                         <span class="setting-label">当選者を全登壇者から除外</span>
+                    </div>
+                    <div class="settings-panel">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="include-all-toggle">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="setting-label">全データから抽選</span>
                     </div>
 
                     <div class="candidate-list-container">
@@ -710,6 +784,39 @@
                 </div>
             </div>
         </div>
+
+        <!-- ヘルプモーダル -->
+        <div id="help-modal" class="modal hidden">
+            <div class="modal-content" style="max-width: 500px;">
+                <div class="modal-header">
+                    <h3>使い方ガイド</h3>
+                    <button class="close-modal" id="close-help">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="help-step">
+                        <h4><span class="help-badge">1</span> CSVファイルを準備</h4>
+                        <p>名前, 質問内容, 宛先発表者名, 除外フラグ(x) の形式でCSVを作成します。</p>
+                    </div>
+                    <div class="help-step">
+                        <h4><span class="help-badge">2</span> ファイルを読み込み</h4>
+                        <p>作成したCSVをドラッグ＆ドロップするか、ファイルを選択して読み込みます。</p>
+                    </div>
+                    <div class="help-step">
+                        <h4><span class="help-badge">3</span> 発表者を選択</h4>
+                        <p>画面下部のタブから、質問対象の登壇者を選択します。個別に除外設定も可能です。</p>
+                    </div>
+                    <div class="help-step">
+                        <h4><span class="help-badge">4</span> 抽選スタート</h4>
+                        <p>「START」ボタンを押してルーレットを回します。選出された質問者が表示されます。</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" id="help-ok-btn">了解</button>
+                </div>
+            </div>
+        </div>
+
+        <button id="help-btn" title="使い方ガイド">?</button>
     </div>
 
     <script>
@@ -741,9 +848,9 @@
         let currentRotation = 0;
         let isSpinning = false;
         let globalWinners = new Set();
-        let excludedNames = new Set();
+        let excludedIDs = new Set();
         let wheelColors = [
-            '#6366f1', '#ec4899', '#8b5cf6', '#f43f5e', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'
+            '#f59e0b', '#f43f5e', '#d946ef', '#8b5cf6', '#6366f1', '#0ea5e9', '#10b981', '#f97316'
         ];
 
         // イベントリスナー
@@ -765,9 +872,37 @@
         resetBtn.addEventListener('click', resetApp);
         closeModalBtns.forEach(btn => btn.addEventListener('click', closeResult));
 
+        // 使い方ガイドの制御
+        const helpBtn = document.getElementById('help-btn');
+        const helpModal = document.getElementById('help-modal');
+        const closeHelpBtn = document.getElementById('close-help');
+        const helpOkBtn = document.getElementById('help-ok-btn');
+
+        if (helpBtn && helpModal) {
+            helpBtn.addEventListener('click', () => {
+                helpModal.classList.remove('hidden');
+            });
+
+            const closeHelp = () => helpModal.classList.add('hidden');
+
+            if (closeHelpBtn) closeHelpBtn.addEventListener('click', closeHelp);
+            if (helpOkBtn) helpOkBtn.addEventListener('click', closeHelp);
+
+            helpModal.addEventListener('click', (e) => {
+                if (e.target === helpModal) closeHelp();
+            });
+        }
+
         globalExcludeToggle.addEventListener('change', () => {
             selectPresenter(currentPresenter);
         });
+
+        const includeAllToggle = document.getElementById('include-all-toggle');
+        if (includeAllToggle) {
+            includeAllToggle.addEventListener('change', () => {
+                selectPresenter(currentPresenter);
+            });
+        }
 
         toggleListBtn.addEventListener('click', () => {
             candidateList.classList.toggle('collapsed');
@@ -810,7 +945,7 @@
                 .filter(line => line.trim() !== '')
                 .map(line => line.split(','));
 
-            rows.forEach(parts => {
+            rows.forEach((parts, index) => {
                 const name = parts[0] ? parts[0].trim() : '';
                 const question = parts[1] ? parts[1].trim() : '';
                 const rawTarget = parts[2] ? parts[2].trim() : '';
@@ -818,13 +953,14 @@
 
                 // 4列目: 除外フラグ (x, X, または *)
                 const exclusionFlag = parts[3] ? parts[3].trim() : '';
-                if (exclusionFlag === 'x' || exclusionFlag === 'X' || exclusionFlag === '*') {
-                    excludedNames.add(name);
-                }
+                const isExcluded = (exclusionFlag === 'x' || exclusionFlag === 'X' || exclusionFlag === '*');
+
+                const id = `p-${index}-${Date.now()}`;
 
                 if (name && question) {
-                    allParticipants.push({ name, question, target });
+                    allParticipants.push({ id, name, question, target });
                     presenters.add(target);
+                    if (isExcluded) excludedIDs.add(id);
                 }
             });
 
@@ -872,17 +1008,18 @@
                 else btn.classList.remove('active');
             });
 
+            const isGlobalExclude = globalExcludeToggle.checked;
+            const isIncludeAll = includeAllToggle ? includeAllToggle.checked : false;
+
             let potentialCandidates = [];
-            if (presenter === 'All') {
+            if (isIncludeAll || presenter === 'All') {
                 potentialCandidates = [...allParticipants];
             } else {
                 potentialCandidates = allParticipants.filter(p => p.target === presenter);
             }
 
-            const isGlobalExclude = globalExcludeToggle.checked;
-
             currentParticipants = potentialCandidates.filter(p => {
-                if (excludedNames.has(p.name)) return false;
+                if (excludedIDs.has(p.id)) return false;
                 if (isGlobalExclude && globalWinners.has(p.name)) return false;
                 return true;
             });
@@ -930,9 +1067,9 @@
 
                 checkbox.addEventListener('change', (e) => {
                     if (e.target.checked) {
-                        excludedNames.delete(p.name);
+                        excludedIDs.delete(p.id);
                     } else {
-                        excludedNames.add(p.name);
+                        excludedIDs.add(p.id);
                     }
                     selectPresenter(currentPresenter);
                 });
@@ -985,29 +1122,35 @@
             isSpinning = true;
             spinBtn.disabled = true;
 
+            // 1. 最初に当選者を決定
+            const winnerIndex = Math.floor(Math.random() * currentParticipants.length);
+            const winner = currentParticipants[winnerIndex];
+
+            // 2. 当選者のセグメントの中心で停止するように角度を計算
+            const arcDegrees = 360 / currentParticipants.length;
+            const winnerCenterAngle = winnerIndex * arcDegrees + arcDegrees / 2;
+
+            let targetRotation = 270 - winnerCenterAngle;
+
+            // 回転方向を正（時計回り）に固定し、最低5回転させる
             const minSpins = 5;
-            const extraSpins = Math.random() * 3;
-            const totalRotationDegrees = (minSpins + extraSpins) * 360;
-            const newRotation = currentRotation + totalRotationDegrees;
+            const minRotation = currentRotation + (minSpins * 360);
+
+            while (targetRotation < minRotation) {
+                targetRotation += 360;
+            }
 
             canvas.style.transition = 'transform 5s cubic-bezier(0.15, 0, 0.15, 1)';
-            canvas.style.transform = `rotate(${newRotation}deg)`;
-            currentRotation = newRotation;
+            canvas.style.transform = `rotate(${targetRotation}deg)`;
+            currentRotation = targetRotation;
 
-            setTimeout(() => { finishSpin(newRotation); }, 5000);
+            setTimeout(() => { finishSpin(winner); }, 5000);
         }
 
-        function finishSpin(finalRotation) {
+        function finishSpin(winner) {
             isSpinning = false;
             spinBtn.disabled = false;
-            const degrees = finalRotation % 360;
-            let targetAngle = (270 - degrees) % 360;
-            if (targetAngle < 0) targetAngle += 360;
 
-            const arcDegrees = 360 / currentParticipants.length;
-            const index = Math.floor(targetAngle / arcDegrees);
-
-            const winner = currentParticipants[index];
             if (winner) {
                 globalWinners.add(winner.name);
                 selectPresenter(currentPresenter);
@@ -1018,7 +1161,13 @@
         function showResult(winner) {
             if (!winner) return;
             resultName.textContent = winner.name;
-            resultQuestion.textContent = winner.question;
+
+            const isIncludeAll = includeAllToggle && includeAllToggle.checked;
+            if (isIncludeAll) {
+                resultQuestion.textContent = "発表を聞いての質問をお願いします";
+            } else {
+                resultQuestion.textContent = winner.question;
+            }
             resultModal.classList.remove('hidden');
         }
 

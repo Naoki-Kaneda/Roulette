@@ -41,7 +41,78 @@ let wheelColors = [
     '#f97316'  // Orange
 ];
 
-// ... (EventListeners omitted, unchanged) ...
+// イベントリスナー設定
+
+['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    dropArea.addEventListener(eventName, preventDefaults, false);
+});
+
+function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+['dragenter', 'dragover'].forEach(eventName => { dropArea.addEventListener(eventName, highlight, false); });
+['dragleave', 'drop'].forEach(eventName => { dropArea.addEventListener(eventName, unhighlight, false); });
+
+function highlight(e) { dropArea.classList.add('dragover'); }
+function unhighlight(e) { dropArea.classList.remove('dragover'); }
+
+dropArea.addEventListener('drop', handleDrop, false);
+csvInput.addEventListener('change', handleFiles, false);
+spinBtn.addEventListener('click', spinRoulette);
+resetBtn.addEventListener('click', resetApp);
+closeModalBtns.forEach(btn => btn.addEventListener('click', closeResult));
+
+// 使い方ガイドの制御
+const helpBtn = document.getElementById('help-btn');
+const helpModal = document.getElementById('help-modal');
+const closeHelpBtn = document.getElementById('close-help');
+const helpOkBtn = document.getElementById('help-ok-btn');
+
+if (helpBtn && helpModal) {
+    helpBtn.addEventListener('click', () => {
+        helpModal.classList.remove('hidden');
+    });
+
+    const closeHelp = () => helpModal.classList.add('hidden');
+
+    if (closeHelpBtn) closeHelpBtn.addEventListener('click', closeHelp);
+    if (helpOkBtn) helpOkBtn.addEventListener('click', closeHelp);
+
+    // モーダルの外側をクリックしても閉じる
+    helpModal.addEventListener('click', (e) => {
+        if (e.target === helpModal) closeHelp();
+    });
+}
+
+// 切り替えスイッチのイベントリスナー
+if (globalExcludeToggle) {
+    globalExcludeToggle.addEventListener('change', () => {
+        selectPresenter(currentPresenter);
+    });
+}
+
+// 「全データから抽選」のイベントリスナー
+const includeAllToggle = document.getElementById('include-all-toggle');
+if (includeAllToggle) {
+    includeAllToggle.addEventListener('change', () => {
+        selectPresenter(currentPresenter);
+    });
+}
+
+function toggleCandidateList() {
+    candidateList.classList.toggle('collapsed');
+    const isCollapsed = candidateList.classList.contains('collapsed');
+    if (toggleListBtn) {
+        toggleListBtn.style.transform = isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)';
+    }
+}
+
+if (toggleListBtn) {
+    toggleListBtn.addEventListener('click', toggleCandidateList);
+}
+
+const candidateHeader = document.querySelector('.candidate-header');
+if (candidateHeader) {
+    candidateHeader.addEventListener('click', toggleCandidateList);
+}
 
 function parseCSV(text) {
     allParticipants = [];

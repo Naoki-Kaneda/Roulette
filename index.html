@@ -113,6 +113,39 @@
             <div class="confetti-container" id="confetti-container"></div>
         </div>
     </div>
+
+    <!-- ヘルプモーダル -->
+    <div id="help-modal" class="modal hidden">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>使い方ガイド</h3>
+                <button class="close-modal" id="close-help">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="help-step">
+                    <h4><span class="help-badge">1</span> CSVファイルを準備</h4>
+                    <p>名前, 質問内容, 宛先発表者名, 除外フラグ(x) の形式でCSVを作成します。</p>
+                </div>
+                <div class="help-step">
+                    <h4><span class="help-badge">2</span> ファイルを読み込み</h4>
+                    <p>作成したCSVをドラッグ＆ドロップするか、ファイルを選択して読み込みます。</p>
+                </div>
+                <div class="help-step">
+                    <h4><span class="help-badge">3</span> 発表者を選択</h4>
+                    <p>画面下部のタブから、質問対象の登壇者を選択します。個別に除外設定も可能です。</p>
+                </div>
+                <div class="help-step">
+                    <h4><span class="help-badge">4</span> 抽選スタート</h4>
+                    <p>「START」ボタンを押してルーレットを回します。選出された質問者が表示されます。</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="help-ok-btn">了解</button>
+            </div>
+        </div>
+    </div>
+
+    <button id="help-btn" title="使い方ガイド">?</button>
     <script src="script.js"></script>
 </body>
 
