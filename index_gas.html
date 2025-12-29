@@ -939,7 +939,6 @@
             allParticipants = [];
             presenters = new Set();
             globalWinners = new Set();
-            excludedNames = new Set();
 
             const rows = text.split(/\r\n|\n/)
                 .filter(line => line.trim() !== '')
@@ -1051,7 +1050,7 @@
 
             candidates.forEach(p => {
                 const isGlobalWinner = globalWinners.has(p.name);
-                const isExcluded = excludedNames.has(p.name);
+                const isExcluded = excludedIDs.has(p.id);
 
                 const item = document.createElement('div');
                 item.className = 'candidate-item';
