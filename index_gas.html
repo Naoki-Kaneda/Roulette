@@ -755,6 +755,130 @@
             max-width: 600px;
             padding: 1.5rem;
         }
+
+        /* 動的な矢印 */
+        .pointers-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .pointer {
+            position: absolute;
+            font-size: 3rem;
+            color: var(--text-main);
+            text-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            filter: drop-shadow(0 0 5px var(--secondary));
+            transition: all 0.5s ease;
+        }
+
+        #pointer-1 {
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        #pointer-2 {
+            top: 75%;
+            left: 93%;
+            transform: translate(-50%, -50%) rotate(120deg);
+        }
+
+        #pointer-3 {
+            top: 75%;
+            left: 7%;
+            transform: translate(-50%, -50%) rotate(240deg);
+        }
+
+        .mode-2 #pointer-1 {
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .mode-2 #pointer-2 {
+            top: auto;
+            bottom: -20px;
+            left: 50%;
+            right: auto;
+            transform: translateX(-50%) rotate(180deg);
+        }
+
+        /* 当選人数セレクター */
+        .winner-count-selector {
+            display: flex;
+            gap: 0.5rem;
+            margin-left: 0.5rem;
+        }
+
+        .count-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-family: var(--font-heading);
+            font-weight: 700;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .count-btn:hover {
+            border-color: var(--primary);
+            color: var(--text-main);
+        }
+
+        .count-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        /* 複数名当選時のスタイル */
+        .result-item {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            animation: slideUp 0.5s ease-out;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-item .result-name {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+            background: linear-gradient(to right, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .result-item .result-question {
+            font-size: 1rem;
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 0.8rem;
+            line-height: 1.4;
+            text-align: left;
+        }
+
+        .modal-content.multi-winner {
+            max-width: 600px;
+            padding: 1.5rem;
+        }
     </style>
 </head>
 
@@ -836,7 +960,11 @@
                 <section class="roulette-section" id="roulette-section">
                     <div class="roulette-container">
                         <div class="roulette-wheel-outer">
-                            <div class="pointer">▼</div>
+                            <div class="pointers-container" id="pointers-container">
+                                <div class="pointer" id="pointer-1">▼</div>
+                                <div class="pointer hidden" id="pointer-2">▼</div>
+                                <div class="pointer hidden" id="pointer-3">▼</div>
+                            </div>
                             <canvas id="roulette-canvas" width="500" height="500"></canvas>
                         </div>
                     </div>
@@ -988,6 +1116,11 @@
 
         // 当選人数セレクターの初期化
         const winnerCountSelector = document.getElementById('winner-count-selector');
+        const pointersContainer = document.getElementById('pointers-container');
+        const p1 = document.getElementById('pointer-1');
+        const p2 = document.getElementById('pointer-2');
+        const p3 = document.getElementById('pointer-3');
+
         if (winnerCountSelector) {
             const btns = winnerCountSelector.querySelectorAll('.count-btn');
             btns.forEach(btn => {
@@ -995,6 +1128,13 @@
                     btns.forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
                     winnerCount = parseInt(btn.dataset.count);
+
+                    if (p2) p2.classList.toggle('hidden', winnerCount < 2);
+                    if (p3) p3.classList.toggle('hidden', winnerCount < 3);
+
+                    if (pointersContainer) {
+                        pointersContainer.classList.toggle('mode-2', winnerCount === 2);
+                    }
                 });
             });
         }
@@ -1238,18 +1378,39 @@
             canvas.style.transform = `rotate(${targetRotation}deg)`;
             currentRotation = targetRotation;
 
-            // 当選者の配列を作成
-            const winners = [winner];
-            if (winnerCount > 1 && currentParticipants.length > 1) {
-                const others = currentParticipants.filter(p => p.id !== winner.id);
-                const countToPick = Math.min(winnerCount - 1, others.length);
-                const shuffledExtras = others.sort(() => 0.5 - Math.random());
-                for (let i = 0; i < countToPick; i++) {
-                    winners.push(shuffledExtras[i]);
-                }
-            }
+            // 5秒後に各矢印が指している人を特定
+            setTimeout(() => {
+                const winners = [];
+                const arcDegrees = 360 / currentParticipants.length;
+                const normalizedRotation = targetRotation % 360;
 
-            setTimeout(() => { finishSpin(winners); }, 5000);
+                let pointerAngles = [270];
+                if (winnerCount === 2) {
+                    pointerAngles.push(90);
+                } else if (winnerCount === 3) {
+                    pointerAngles.push(30);
+                    pointerAngles.push(150);
+                }
+
+                pointerAngles.forEach(pAngle => {
+                    let wheelAngle = (pAngle - normalizedRotation) % 360;
+                    if (wheelAngle < 0) wheelAngle += 360;
+
+                    const winnerIndex = Math.floor(wheelAngle / arcDegrees);
+                    const winner = currentParticipants[winnerIndex];
+
+                    if (winner && !winners.find(w => w.id === winner.id)) {
+                        winners.push(winner);
+                    } else if (winner) {
+                        const unused = currentParticipants.filter(p => !winners.find(w => w.id === p.id));
+                        if (unused.length > 0) {
+                            winners.push(unused[Math.floor(Math.random() * unused.length)]);
+                        }
+                    }
+                });
+
+                finishSpin(winners);
+            }, 5000);
         }
 
         function finishSpin(winners) {

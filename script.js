@@ -100,6 +100,11 @@ if (includeAllToggle) {
 
 // 当選人数セレクターの初期化
 const winnerCountSelector = document.getElementById('winner-count-selector');
+const pointersContainer = document.getElementById('pointers-container');
+const p1 = document.getElementById('pointer-1');
+const p2 = document.getElementById('pointer-2');
+const p3 = document.getElementById('pointer-3');
+
 if (winnerCountSelector) {
     const btns = winnerCountSelector.querySelectorAll('.count-btn');
     btns.forEach(btn => {
@@ -107,6 +112,15 @@ if (winnerCountSelector) {
             btns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             winnerCount = parseInt(btn.dataset.count);
+
+            // 矢印の表示制御
+            if (p2) p2.classList.toggle('hidden', winnerCount < 2);
+            if (p3) p3.classList.toggle('hidden', winnerCount < 3);
+
+            // 2人の時のレイアウト切り替え
+            if (pointersContainer) {
+                pointersContainer.classList.toggle('mode-2', winnerCount === 2);
+            }
         });
     });
 }
@@ -387,66 +401,81 @@ function drawWheel() {
     });
 }
 
+if (winnerCountInput) {
+    winnerCountInput.addEventListener('change', (e) => {
+        winnerCount = parseInt(e.target.value, 10);
+        // ポインターの表示/非表示を更新
+        const pointer2 = document.getElementById('pointer-2');
+        const pointer3 = document.getElementById('pointer-3');
+
+        if (pointer2) {
+            if (winnerCount >= 2) pointer2.classList.remove('hidden');
+            else pointer2.classList.add('hidden');
+        }
+        if (pointer3) {
+            if (winnerCount >= 3) pointer3.classList.remove('hidden');
+            else pointer3.classList.add('hidden');
+        }
+    });
+}
+
 function spinRoulette() {
     if (isSpinning || currentParticipants.length === 0) return;
     isSpinning = true;
     spinBtn.disabled = true;
 
-    // 1. 最初に当選者を決定
-    const winnerIndex = Math.floor(Math.random() * currentParticipants.length);
-    const winner = currentParticipants[winnerIndex];
-
-    // 2. 当選者のセグメントの中心で停止するように角度を計算
-    // Canvasは0ラジアン（3時方向）から時計回りに描画される
-    // ポインターは270度（12時方向）にある
-    // セグメント開始角度 = index * arcDegrees
-    // セグメント中心角度 = index * arcDegrees + arcDegrees / 2
-
-    const arcDegrees = 360 / currentParticipants.length;
-    const winnerCenterAngle = winnerIndex * arcDegrees + arcDegrees / 2;
-
-    // 回転後のwinnerCenterAngleが270度（ポインター位置）に来るようにする
-    // 最終回転位置 = (270 - winnerCenterAngle)
-
-    // 複数回の回転を追加（最低5回転）
-    // スムーズな正方向回転のために、360の倍数を加算し、currentRotationを調整する
-
-    let targetRotation = 270 - winnerCenterAngle;
-
-    // 正方向（時計回り）に確実に回転させる
-    // currentRotation + minSpins よりも大きい、次の360の倍数を見つける
+    // 1. ルーレット全体の最終回転角度をランダムに決定
     const minSpins = 5;
-    const minRotation = currentRotation + (minSpins * 360);
-
-    // アライメントを維持しつつ、minRotation以上になる最小の値をtargetRotationに設定
-    // (targetRotation % 360) が (270 - winnerCenterAngle) % 360 と等しくなるようにする
-
-    // 目標値を正規化
-    while (targetRotation < minRotation) {
-        targetRotation += 360;
-    }
+    const randomExtra = Math.random() * 360;
+    const targetRotation = currentRotation + (minSpins * 360) + randomExtra;
 
     canvas.style.transition = 'transform 5s cubic-bezier(0.15, 0, 0.15, 1)';
     canvas.style.transform = `rotate(${targetRotation}deg)`;
     currentRotation = targetRotation;
 
-    // 当選者の配列を作成 (1〜N人)
-    // 最初の1人（ビジュアル上の当選者）は確定済み
-    const winners = [winner];
+    // 2. 5秒後に各矢印が指している人を特定
+    setTimeout(() => {
+        const winners = [];
+        const arcDegrees = 360 / currentParticipants.length;
 
-    // 2人目以降が必要な場合、残りの現在候補者から重複なしで選出
-    if (winnerCount > 1 && currentParticipants.length > 1) {
-        const others = currentParticipants.filter(p => p.id !== winner.id);
-        const countToPick = Math.min(winnerCount - 1, others.length);
+        // 正規化された最終角度 (0-360)
+        // Canvasは右(3時)が0度で時計回り。
+        // 回転角度を足すと、ビジュアル上の「0度の線」は時計回りに移動する。
+        // つまり、固定されたポインターが指す「ホイール上の角度」は 逆方向に移動（＝マイナス）する。
+        const normalizedRotation = targetRotation % 360;
 
-        // シャッフルして必要な分だけ取得
-        const shuffledExtras = others.sort(() => 0.5 - Math.random());
-        for (let i = 0; i < countToPick; i++) {
-            winners.push(shuffledExtras[i]);
+        // 各ポインターの絶対角度（12時=270, 6時=90, 4時=30, 8時=150）
+        let pointerAngles = [270]; // 1人目はずっと12時
+        if (winnerCount === 2) {
+            pointerAngles.push(90); // 2人目は6時
+        } else if (winnerCount === 3) {
+            pointerAngles.push(30);  // 2人目は4時
+            pointerAngles.push(150); // 3人目は8時
         }
-    }
 
-    setTimeout(() => { finishSpin(winners); }, 5000);
+        pointerAngles.forEach(pAngle => {
+            // ポインターが指しているホイール側の角度 = (ポインター角度 - ルーレット回転角度) を360度系に正規化
+            let wheelAngle = (pAngle - normalizedRotation) % 360;
+            if (wheelAngle < 0) wheelAngle += 360;
+
+            // wheelAngle がどのセグメントに入っているか
+            const winnerIndex = Math.floor(wheelAngle / arcDegrees);
+            const winner = currentParticipants[winnerIndex];
+
+            // 重複チェック（万が一同じセグメントを指した場合）
+            if (winner && !winners.find(w => w.id === winner.id)) {
+                winners.push(winner);
+            } else if (winner) {
+                // 同じ人を指した場合は、まだ当選していない人をランダムに一人追加（予備）
+                const unused = currentParticipants.filter(p => !winners.find(w => w.id === p.id));
+                if (unused.length > 0) {
+                    winners.push(unused[Math.floor(Math.random() * unused.length)]);
+                }
+            }
+        });
+
+        finishSpin(winners);
+    }, 5000);
 }
 
 function finishSpin(winners) {
