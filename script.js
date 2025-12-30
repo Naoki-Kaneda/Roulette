@@ -29,6 +29,7 @@ let isSpinning = false;
 let globalWinners = new Set();
 // let excludedNames = new Set(); // Deprecated in favor of ID-based exclusion
 let excludedIDs = new Set(); // IDベースの除外管理に変更
+let winnerCount = 1; // 当選人数
 
 let wheelColors = [
     '#f59e0b', // Amber (Brand)
@@ -94,6 +95,19 @@ const includeAllToggle = document.getElementById('include-all-toggle');
 if (includeAllToggle) {
     includeAllToggle.addEventListener('change', () => {
         selectPresenter(currentPresenter);
+    });
+}
+
+// 当選人数セレクターの初期化
+const winnerCountSelector = document.getElementById('winner-count-selector');
+if (winnerCountSelector) {
+    const btns = winnerCountSelector.querySelectorAll('.count-btn');
+    btns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            btns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            winnerCount = parseInt(btn.dataset.count);
+        });
     });
 }
 
@@ -416,31 +430,85 @@ function spinRoulette() {
     canvas.style.transform = `rotate(${targetRotation}deg)`;
     currentRotation = targetRotation;
 
-    setTimeout(() => { finishSpin(winner); }, 5000);
+    // 当選者の配列を作成 (1〜N人)
+    // 最初の1人（ビジュアル上の当選者）は確定済み
+    const winners = [winner];
+
+    // 2人目以降が必要な場合、残りの現在候補者から重複なしで選出
+    if (winnerCount > 1 && currentParticipants.length > 1) {
+        const others = currentParticipants.filter(p => p.id !== winner.id);
+        const countToPick = Math.min(winnerCount - 1, others.length);
+
+        // シャッフルして必要な分だけ取得
+        const shuffledExtras = others.sort(() => 0.5 - Math.random());
+        for (let i = 0; i < countToPick; i++) {
+            winners.push(shuffledExtras[i]);
+        }
+    }
+
+    setTimeout(() => { finishSpin(winners); }, 5000);
 }
 
-function finishSpin(winner) {
+function finishSpin(winners) {
     isSpinning = false;
     spinBtn.disabled = false;
 
-    if (winner) {
-        globalWinners.add(winner.name);
+    if (winners && winners.length > 0) {
+        winners.forEach(w => globalWinners.add(w.name));
         selectPresenter(currentPresenter);
-        showResult(winner);
+        showResult(winners);
     }
 }
 
-function showResult(winner) {
-    if (!winner) return;
-    resultName.textContent = winner.name;
+function showResult(winners) {
+    if (!winners || winners.length === 0) return;
 
-    // Check if 'Include All' mode is active
     const isIncludeAll = includeAllToggle && includeAllToggle.checked;
+    const modalContent = document.querySelector('.modal-content');
 
-    if (isIncludeAll) {
-        resultQuestion.textContent = "発表を聞いての質問をお願いします";
+    if (winners.length === 1) {
+        // 1人の場合は従来の表示形式（互換性維持）
+        modalContent.classList.remove('multi-winner');
+        const winner = winners[0];
+        resultName.textContent = winner.name;
+        if (isIncludeAll) {
+            resultQuestion.textContent = "発表を聞いての質問をお願いします";
+        } else {
+            resultQuestion.textContent = winner.question;
+        }
+
+        // 表示を元に戻す（複数名表示後のリセット用）
+        resultName.style.display = 'block';
+        resultQuestion.style.display = 'block';
+        const existingItems = modalContent.querySelectorAll('.result-item');
+        existingItems.forEach(item => item.remove());
     } else {
-        resultQuestion.textContent = winner.question;
+        // 複数名の場合はリスト形式
+        modalContent.classList.add('multi-winner');
+        resultName.style.display = 'none';
+        resultQuestion.style.display = 'none';
+
+        // 既存のリストアイテムを削除
+        const existingItems = modalContent.querySelectorAll('.result-item');
+        existingItems.forEach(item => item.remove());
+
+        const modalBody = document.querySelector('.modal-body');
+        winners.forEach(winner => {
+            const item = document.createElement('div');
+            item.className = 'result-item';
+
+            const nameDiv = document.createElement('div');
+            nameDiv.className = 'result-name';
+            nameDiv.textContent = winner.name;
+
+            const qDiv = document.createElement('div');
+            qDiv.className = 'result-question';
+            qDiv.textContent = isIncludeAll ? "発表を聞いての質問をお願いします" : winner.question;
+
+            item.appendChild(nameDiv);
+            item.appendChild(qDiv);
+            modalBody.appendChild(item);
+        });
     }
 
     resultModal.classList.remove('hidden');

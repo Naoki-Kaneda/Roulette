@@ -683,6 +683,78 @@
             justify-content: center;
             font-size: 0.75rem;
         }
+
+        /* 当選人数セレクター */
+        .winner-count-selector {
+            display: flex;
+            gap: 0.5rem;
+            margin-left: 0.5rem;
+        }
+
+        .count-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-family: var(--font-heading);
+            font-weight: 700;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .count-btn:hover {
+            border-color: var(--primary);
+            color: var(--text-main);
+        }
+
+        .count-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        /* 複数名当選時のスタイル */
+        .result-item {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            animation: slideUp 0.5s ease-out;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-item .result-name {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+            background: linear-gradient(to right, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .result-item .result-question {
+            font-size: 1rem;
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 0.8rem;
+            line-height: 1.4;
+            text-align: left;
+        }
+
+        .modal-content.multi-winner {
+            max-width: 600px;
+            padding: 1.5rem;
+        }
     </style>
 </head>
 
@@ -735,6 +807,15 @@
                             <span class="slider"></span>
                         </label>
                         <span class="setting-label">全データから抽選</span>
+                    </div>
+
+                    <div class="settings-panel">
+                        <span class="setting-label">当選人数:</span>
+                        <div class="winner-count-selector" id="winner-count-selector">
+                            <button class="count-btn active" data-count="1">1</button>
+                            <button class="count-btn" data-count="2">2</button>
+                            <button class="count-btn" data-count="3">3</button>
+                        </div>
                     </div>
 
                     <div class="candidate-list-container">
@@ -849,6 +930,7 @@
         let isSpinning = false;
         let globalWinners = new Set();
         let excludedIDs = new Set();
+        let winnerCount = 1;
         let wheelColors = [
             '#f59e0b', '#f43f5e', '#d946ef', '#8b5cf6', '#6366f1', '#0ea5e9', '#10b981', '#f97316'
         ];
@@ -901,6 +983,19 @@
         if (includeAllToggle) {
             includeAllToggle.addEventListener('change', () => {
                 selectPresenter(currentPresenter);
+            });
+        }
+
+        // 当選人数セレクターの初期化
+        const winnerCountSelector = document.getElementById('winner-count-selector');
+        if (winnerCountSelector) {
+            const btns = winnerCountSelector.querySelectorAll('.count-btn');
+            btns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    btns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    winnerCount = parseInt(btn.dataset.count);
+                });
             });
         }
 
@@ -1143,29 +1238,72 @@
             canvas.style.transform = `rotate(${targetRotation}deg)`;
             currentRotation = targetRotation;
 
-            setTimeout(() => { finishSpin(winner); }, 5000);
+            // 当選者の配列を作成
+            const winners = [winner];
+            if (winnerCount > 1 && currentParticipants.length > 1) {
+                const others = currentParticipants.filter(p => p.id !== winner.id);
+                const countToPick = Math.min(winnerCount - 1, others.length);
+                const shuffledExtras = others.sort(() => 0.5 - Math.random());
+                for (let i = 0; i < countToPick; i++) {
+                    winners.push(shuffledExtras[i]);
+                }
+            }
+
+            setTimeout(() => { finishSpin(winners); }, 5000);
         }
 
-        function finishSpin(winner) {
+        function finishSpin(winners) {
             isSpinning = false;
             spinBtn.disabled = false;
 
-            if (winner) {
-                globalWinners.add(winner.name);
+            if (winners && winners.length > 0) {
+                winners.forEach(w => globalWinners.add(w.name));
                 selectPresenter(currentPresenter);
-                showResult(winner);
+                showResult(winners);
             }
         }
 
-        function showResult(winner) {
-            if (!winner) return;
-            resultName.textContent = winner.name;
+        function showResult(winners) {
+            if (!winners || winners.length === 0) return;
 
             const isIncludeAll = includeAllToggle && includeAllToggle.checked;
-            if (isIncludeAll) {
-                resultQuestion.textContent = "発表を聞いての質問をお願いします";
+            const modalContent = document.querySelector('.modal-content');
+
+            if (winners.length === 1) {
+                modalContent.classList.remove('multi-winner');
+                const winner = winners[0];
+                resultName.textContent = winner.name;
+                resultQuestion.textContent = isIncludeAll ? "発表を聞いての質問をお願いします" : winner.question;
+
+                resultName.style.display = 'block';
+                resultQuestion.style.display = 'block';
+                const existingItems = modalContent.querySelectorAll('.result-item');
+                existingItems.forEach(item => item.remove());
             } else {
-                resultQuestion.textContent = winner.question;
+                modalContent.classList.add('multi-winner');
+                resultName.style.display = 'none';
+                resultQuestion.style.display = 'none';
+
+                const existingItems = modalContent.querySelectorAll('.result-item');
+                existingItems.forEach(item => item.remove());
+
+                const modalBody = document.querySelector('.modal-body');
+                winners.forEach(winner => {
+                    const item = document.createElement('div');
+                    item.className = 'result-item';
+
+                    const nameDiv = document.createElement('div');
+                    nameDiv.className = 'result-name';
+                    nameDiv.textContent = winner.name;
+
+                    const qDiv = document.createElement('div');
+                    qDiv.className = 'result-question';
+                    qDiv.textContent = isIncludeAll ? "発表を聞いての質問をお願いします" : winner.question;
+
+                    item.appendChild(nameDiv);
+                    item.appendChild(qDiv);
+                    modalBody.appendChild(item);
+                });
             }
             resultModal.classList.remove('hidden');
         }
