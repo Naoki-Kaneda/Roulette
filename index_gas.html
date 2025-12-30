@@ -3,27 +3,32 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Roulette Questioner Selector</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap"
         rel="stylesheet">
-
     <style>
+        /* =========================================
+   1. Root & Base Styles
+   ========================================= */
         :root {
-            --bg-dark: #0f172a;
-            --bg-card: #1e293b;
-            --primary: #6366f1;
-            --primary-glow: rgba(99, 102, 241, 0.5);
-            --secondary: #ec4899;
-            --secondary-glow: rgba(236, 72, 153, 0.5);
+            --bg-dark: #111111;
+            --bg-card: #222222;
+            --primary: #f59e0b;
+            --primary-glow: rgba(245, 158, 11, 0.5);
+            --secondary: #d97706;
+            --secondary-glow: rgba(217, 119, 6, 0.5);
             --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --border: #334155;
+            --text-muted: #9ca3af;
+            --border: #404040;
             --font-heading: 'Outfit', sans-serif;
             --font-body: 'Zen Kaku Gothic New', sans-serif;
-            --glass: rgba(30, 41, 59, 0.7);
+            --glass: rgba(34, 34, 34, 0.8);
+            --transition-fast: 0.3s ease;
+            --transition-slow: 0.5s ease;
         }
 
         * {
@@ -41,15 +46,17 @@
             justify-content: center;
             align-items: center;
             background-image:
-                radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 20%),
-                radial-gradient(circle at 90% 80%, rgba(236, 72, 153, 0.15) 0%, transparent 20%);
+                radial-gradient(circle at 10% 20%, rgba(245, 158, 11, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 20%);
             overflow-x: hidden;
         }
 
+        /* =========================================
+   2. Layout
+   ========================================= */
         .app-container {
             width: 100%;
             max-width: 1200px;
-            /* 分割レイアウト対応のため幅を拡張 */
             padding: 2rem;
             display: flex;
             flex-direction: column;
@@ -57,6 +64,19 @@
             gap: 2rem;
         }
 
+        .split-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            width: 100%;
+            max-width: 1200px;
+            align-items: center;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        /* =========================================
+   3. Header & Navigation
+   ========================================= */
         .app-header {
             text-align: center;
             margin-bottom: 1rem;
@@ -64,7 +84,7 @@
 
         .app-header h1 {
             font-family: var(--font-heading);
-            font-size: 3rem;
+            font-size: 3.5rem;
             font-weight: 700;
             background: linear-gradient(to right, var(--primary), var(--secondary));
             -webkit-background-clip: text;
@@ -77,10 +97,40 @@
 
         .app-header p {
             color: var(--text-muted);
-            font-size: 1rem;
+            font-size: 1.1rem;
         }
 
-        /* Upload Section */
+        #help-btn {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition-fast);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        #help-btn:hover {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            transform: scale(1.1);
+            box-shadow: 0 0 20px var(--primary-glow);
+        }
+
+        /* =========================================
+   4. Upload Section
+   ========================================= */
         .upload-section {
             width: 100%;
             max-width: 600px;
@@ -105,18 +155,18 @@
         .file-drop-area:hover,
         .file-drop-area.dragover {
             border-color: var(--primary);
-            background: rgba(99, 102, 241, 0.1);
-            box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
+            background: rgba(245, 158, 11, 0.05);
+            box-shadow: 0 0 20px var(--primary-glow);
         }
 
-        .result-question {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--text-main);
-            margin-bottom: 2rem;
-            line-height: 1.6;
-            white-space: pre-wrap;
-            /* 改行を保持 */
+        .file-input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
         }
 
         .file-icon {
@@ -135,36 +185,19 @@
             font-size: 0.9rem;
         }
 
-        .file-input {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            cursor: pointer;
-        }
-
         .format-hint {
             text-align: center;
             margin-top: 0.5rem;
             color: var(--text-muted);
         }
 
-        /* Presenter Section */
+        /* =========================================
+   5. Presenter Tabs
+   ========================================= */
         .presenter-section {
             width: 100%;
             text-align: center;
             animation: slideUp 0.5s ease-out;
-        }
-
-        .presenter-section h2 {
-            font-family: var(--font-heading);
-            font-size: 1.2rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            margin-bottom: 1rem;
         }
 
         .presenter-tabs {
@@ -172,6 +205,7 @@
             flex-wrap: wrap;
             justify-content: center;
             gap: 0.5rem;
+            margin-top: 1rem;
         }
 
         .presenter-tab {
@@ -197,7 +231,9 @@
             transform: translateY(-2px);
         }
 
-        /* Settings & Candidates */
+        /* =========================================
+   6. Settings & Candidates
+   ========================================= */
         .settings-candidate-section {
             width: 100%;
             max-width: 500px;
@@ -212,15 +248,10 @@
             align-items: center;
             justify-content: center;
             gap: 1rem;
-            padding: 0.5rem;
+            padding: 0.75rem 1.5rem;
             background: var(--glass);
             border-radius: 2rem;
             border: 1px solid var(--border);
-        }
-
-        .setting-label {
-            font-size: 0.9rem;
-            color: var(--text-muted);
         }
 
         .toggle-switch {
@@ -271,6 +302,33 @@
             background-color: white;
         }
 
+        .winner-count-selector {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .count-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition-fast);
+        }
+
+        .count-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 0 10px var(--primary-glow);
+        }
+
         .candidate-list-container {
             background: var(--bg-card);
             border-radius: 1rem;
@@ -287,18 +345,34 @@
             cursor: pointer;
         }
 
-        .candidate-header h3 {
-            font-size: 1rem;
-            color: var(--text-muted);
-            font-weight: 500;
-        }
-
         .btn-text {
             background: none;
             border: none;
             color: var(--text-muted);
             cursor: pointer;
             transition: transform 0.3s;
+        }
+
+        .search-container {
+            padding: 0.5rem 1rem;
+            border-bottom: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border);
+            background: var(--bg-dark);
+            color: var(--text-main);
+            outline: none;
+            transition: var(--transition-fast);
+        }
+
+        .search-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px var(--primary-glow);
         }
 
         .candidate-list {
@@ -321,7 +395,6 @@
             align-items: center;
             padding: 0.5rem 1rem;
             border-radius: 0.5rem;
-            cursor: pointer;
             transition: background 0.2s;
         }
 
@@ -340,7 +413,9 @@
             color: var(--text-muted);
         }
 
-        /* Roulette Section */
+        /* =========================================
+   7. Roulette Wheel & Pointers
+   ========================================= */
         .roulette-section {
             width: 100%;
             display: flex;
@@ -359,11 +434,10 @@
         }
 
         .roulette-wheel-outer {
-            position: relative;
             width: 100%;
             height: 100%;
             border-radius: 50%;
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
             background: var(--bg-card);
         }
 
@@ -373,18 +447,58 @@
             border-radius: 50%;
         }
 
+        .pointers-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
+        }
+
         .pointer {
             position: absolute;
+            font-size: 3rem;
+            color: var(--text-main);
+            filter: drop-shadow(0 0 5px var(--secondary));
+            transition: var(--transition-slow);
+        }
+
+        #pointer-1 {
             top: -20px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 3rem;
-            color: var(--text-main);
-            z-index: 10;
-            text-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-            filter: drop-shadow(0 0 5px var(--secondary));
         }
 
+        #pointer-2 {
+            top: 75%;
+            left: 93%;
+            transform: translate(-50%, -50%) rotate(120deg);
+        }
+
+        #pointer-3 {
+            top: 75%;
+            left: 7%;
+            transform: translate(-50%, -50%) rotate(240deg);
+        }
+
+        .mode-2 #pointer-1 {
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .mode-2 #pointer-2 {
+            top: auto;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%) rotate(180deg);
+        }
+
+        /* =========================================
+   8. Controls
+   ========================================= */
         .controls {
             display: flex;
             gap: 1rem;
@@ -401,7 +515,6 @@
             text-transform: uppercase;
             letter-spacing: 0.1em;
             transition: all 0.3s ease;
-            outline: none;
         }
 
         .btn-primary {
@@ -412,7 +525,6 @@
 
         .btn-primary:active {
             transform: scale(0.95);
-            box-shadow: 0 5px 10px -5px var(--primary-glow);
         }
 
         .btn-secondary {
@@ -426,7 +538,9 @@
             color: var(--text-main);
         }
 
-        /* Modal */
+        /* =========================================
+   9. Modals (Result & Help)
+   ========================================= */
         .modal {
             position: fixed;
             top: 0;
@@ -451,7 +565,6 @@
             max-width: 500px;
             text-align: center;
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-            transform: scale(1);
             animation: popUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
@@ -462,14 +575,6 @@
             margin-bottom: 2rem;
             border-bottom: 1px solid var(--border);
             padding-bottom: 1rem;
-        }
-
-        .modal-header h3 {
-            font-family: var(--font-heading);
-            color: var(--text-muted);
-            font-size: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
         }
 
         .close-modal {
@@ -500,6 +605,73 @@
             line-height: 1.6;
         }
 
+        .result-item {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            animation: slideUp 0.5s ease-out;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-item .result-name {
+            font-size: 1.8rem;
+        }
+
+        .result-item .result-question {
+            font-size: 1rem;
+            padding: 1rem;
+            border-radius: 0.8rem;
+            text-align: left;
+        }
+
+        .modal-content.multi-winner {
+            max-width: 600px;
+            padding: 1.5rem;
+        }
+
+        .help-step {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+        }
+
+        .help-step:last-child {
+            border-bottom: none;
+        }
+
+        .help-step h4 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .help-step p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .help-badge {
+            background: var(--primary);
+            color: white;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        /* =========================================
+   10. System utilities
+   ========================================= */
         .hidden {
             display: none !important;
         }
@@ -550,46 +722,9 @@
             }
         }
 
-        /* Search Input */
-        .search-container {
-            padding: 0.5rem 1rem;
-            border-bottom: 1px solid var(--border);
-            background: rgba(255, 255, 255, 0.02);
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            border: 1px solid var(--border);
-            background: var(--bg-dark);
-            color: var(--text-main);
-            font-family: var(--font-body);
-            font-size: 0.9rem;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-
-        .search-input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 2px var(--primary-glow);
-        }
-
-        .search-input::placeholder {
-            color: var(--text-muted);
-        }
-
-        /* Split Layout */
-        .split-layout {
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-            width: 100%;
-            max-width: 1200px;
-            align-items: center;
-            animation: fadeIn 0.8s ease-out;
-        }
-
+        /* =========================================
+   11. Media Queries
+   ========================================= */
         @media (min-width: 768px) {
             .split-layout {
                 flex-direction: row;
@@ -602,7 +737,6 @@
                 flex: 1;
                 max-width: 400px;
                 position: sticky;
-                /* 必要に応じてスクロール中も表示 */
                 top: 2rem;
             }
 
@@ -613,271 +747,23 @@
 
             .candidate-list {
                 max-height: 500px;
-                /* スクロール可能なリストの高さ固定 */
             }
         }
 
-        /* ヘルプボタン */
-        #help-btn {
-            position: fixed;
-            top: 1.5rem;
-            right: 1.5rem;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: rgba(34, 34, 34, 0.8);
-            border: 1px solid var(--border);
-            color: var(--text-main);
-            font-size: 1.2rem;
-            font-weight: bold;
-            cursor: pointer;
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
+        @media (max-width: 600px) {
+            .app-header h1 {
+                font-size: 2.5rem;
+            }
 
-        #help-btn:hover {
-            background: linear-gradient(to right, var(--primary), var(--secondary));
-            transform: scale(1.1);
-            box-shadow: 0 0 20px var(--primary-glow);
-        }
+            .btn {
+                padding: 0.75rem 2rem;
+                font-size: 1rem;
+            }
 
-        /* ヘルプモーダル特有のスタイル */
-        .help-step {
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--border);
-            text-align: left;
-        }
-
-        .help-step:last-child {
-            border-bottom: none;
-        }
-
-        .help-step h4 {
-            color: var(--primary);
-            margin-bottom: 0.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .help-step p {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            line-height: 1.6;
-        }
-
-        .help-badge {
-            background: var(--primary);
-            color: white;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.75rem;
-        }
-
-        /* 当選人数セレクター */
-        .winner-count-selector {
-            display: flex;
-            gap: 0.5rem;
-            margin-left: 0.5rem;
-        }
-
-        .count-btn {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            color: var(--text-muted);
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-family: var(--font-heading);
-            font-weight: 700;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-
-        .count-btn:hover {
-            border-color: var(--primary);
-            color: var(--text-main);
-        }
-
-        .count-btn.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-            box-shadow: 0 0 10px var(--primary-glow);
-        }
-
-        /* 複数名当選時のスタイル */
-        .result-item {
-            padding: 1rem 1.5rem;
-            border-bottom: 1px solid var(--border);
-            animation: slideUp 0.5s ease-out;
-        }
-
-        .result-item:last-child {
-            border-bottom: none;
-        }
-
-        .result-item .result-name {
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin-bottom: 0.3rem;
-            background: linear-gradient(to right, #fff, #94a3b8);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .result-item .result-question {
-            font-size: 1rem;
-            color: var(--text-main);
-            background: rgba(255, 255, 255, 0.05);
-            padding: 1rem;
-            border-radius: 0.8rem;
-            line-height: 1.4;
-            text-align: left;
-        }
-
-        .modal-content.multi-winner {
-            max-width: 600px;
-            padding: 1.5rem;
-        }
-
-        /* 動的な矢印 */
-        .pointers-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 10;
-            pointer-events: none;
-        }
-
-        .pointer {
-            position: absolute;
-            font-size: 3rem;
-            color: var(--text-main);
-            text-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-            filter: drop-shadow(0 0 5px var(--secondary));
-            transition: all 0.5s ease;
-        }
-
-        #pointer-1 {
-            top: -20px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
-        #pointer-2 {
-            top: 75%;
-            left: 93%;
-            transform: translate(-50%, -50%) rotate(120deg);
-        }
-
-        #pointer-3 {
-            top: 75%;
-            left: 7%;
-            transform: translate(-50%, -50%) rotate(240deg);
-        }
-
-        .mode-2 #pointer-1 {
-            top: -20px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
-        .mode-2 #pointer-2 {
-            top: auto;
-            bottom: -20px;
-            left: 50%;
-            right: auto;
-            transform: translateX(-50%) rotate(180deg);
-        }
-
-        /* 当選人数セレクター */
-        .winner-count-selector {
-            display: flex;
-            gap: 0.5rem;
-            margin-left: 0.5rem;
-        }
-
-        .count-btn {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            color: var(--text-muted);
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-family: var(--font-heading);
-            font-weight: 700;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-
-        .count-btn:hover {
-            border-color: var(--primary);
-            color: var(--text-main);
-        }
-
-        .count-btn.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-            box-shadow: 0 0 10px var(--primary-glow);
-        }
-
-        /* 複数名当選時のスタイル */
-        .result-item {
-            padding: 1rem 1.5rem;
-            border-bottom: 1px solid var(--border);
-            animation: slideUp 0.5s ease-out;
-        }
-
-        .result-item:last-child {
-            border-bottom: none;
-        }
-
-        .result-item .result-name {
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin-bottom: 0.3rem;
-            background: linear-gradient(to right, #fff, #94a3b8);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .result-item .result-question {
-            font-size: 1rem;
-            color: var(--text-main);
-            background: rgba(255, 255, 255, 0.05);
-            padding: 1rem;
-            border-radius: 0.8rem;
-            line-height: 1.4;
-            text-align: left;
-        }
-
-        .modal-content.multi-winner {
-            max-width: 600px;
-            padding: 1.5rem;
+            .roulette-container {
+                width: 300px;
+                height: 300px;
+            }
         }
     </style>
 </head>
@@ -923,7 +809,7 @@
                             <input type="checkbox" id="global-exclude-toggle" checked>
                             <span class="slider"></span>
                         </label>
-                        <span class="setting-label">当選者を全登壇者から除外</span>
+                        <span class="setting-label">当選者を全登録者から除外</span>
                     </div>
                     <div class="settings-panel">
                         <label class="toggle-switch">
@@ -992,324 +878,316 @@
                     <button class="btn btn-primary close-modal-btn">OK</button>
                 </div>
             </div>
+            <div class="confetti-container" id="confetti-container"></div>
         </div>
-
-        <!-- ヘルプモーダル -->
-        <div id="help-modal" class="modal hidden">
-            <div class="modal-content" style="max-width: 500px;">
-                <div class="modal-header">
-                    <h3>使い方ガイド</h3>
-                    <button class="close-modal" id="close-help">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <div class="help-step">
-                        <h4><span class="help-badge">1</span> CSVファイルを準備</h4>
-                        <p>名前, 質問内容, 宛先発表者名, 除外フラグ(x) の形式でCSVを作成します。</p>
-                    </div>
-                    <div class="help-step">
-                        <h4><span class="help-badge">2</span> ファイルを読み込み</h4>
-                        <p>作成したCSVをドラッグ＆ドロップするか、ファイルを選択して読み込みます。</p>
-                    </div>
-                    <div class="help-step">
-                        <h4><span class="help-badge">3</span> 発表者を選択</h4>
-                        <p>画面下部のタブから、質問対象の登壇者を選択します。個別に除外設定も可能です。</p>
-                    </div>
-                    <div class="help-step">
-                        <h4><span class="help-badge">4</span> 当選人数を設定</h4>
-                        <p>「当選人数」ボタン（1〜3人）で同時に選出する人数を設定できます。人数に合わせて矢印が増えます。</p>
-                    </div>
-                    <div class="help-step">
-                        <h4><span class="help-badge">5</span> 抽選スタート</h4>
-                        <p>「START」ボタンを押してルーレットを回します。選出された質問者が一括表示されます。</p>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-primary" id="help-ok-btn">了解</button>
-                </div>
-            </div>
-        </div>
-
-        <button id="help-btn" title="使い方ガイド">?</button>
     </div>
 
+    <!-- ヘルプモーダル -->
+    <div id="help-modal" class="modal hidden">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>使い方ガイド</h3>
+                <button class="close-modal" id="close-help">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="help-step">
+                    <h4><span class="help-badge">1</span> CSVファイルを準備</h4>
+                    <p>名前, 質問内容, 宛先発表者名, 除外フラグ(x) の形式でCSVを作成します。</p>
+                </div>
+                <div class="help-step">
+                    <h4><span class="help-badge">2</span> ファイルを読み込み</h4>
+                    <p>作成したCSVをドラッグ＆ドロップするか、ファイルを選択して読み込みます。</p>
+                </div>
+                <div class="help-step">
+                    <h4><span class="help-badge">3</span> 発表者を選択</h4>
+                    <p>画面下部のタブから、質問対象の登壇者を選択します。個別に除外設定も可能です。</p>
+                </div>
+                <div class="help-step">
+                    <h4><span class="help-badge">4</span> 当選人数を設定</h4>
+                    <p>「当選人数」ボタン（1〜3人）で同時に選出する人数を設定できます。人数に合わせて矢印が増えます。</p>
+                </div>
+                <div class="help-step">
+                    <h4><span class="help-badge">5</span> 抽選スタート</h4>
+                    <p>「START」ボタンを押してルーレットを回します。選出された質問者が一括表示されます。</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="help-ok-btn">了解</button>
+            </div>
+        </div>
+    </div>
+
+    <button id="help-btn" title="使い方ガイド">?</button>
     <script>
-        // DOM要素
-        const csvInput = document.getElementById('csv-input');
-        const dropArea = document.getElementById('drop-area');
-        const presenterSection = document.getElementById('presenter-section');
-        const presenterTabs = document.getElementById('presenter-tabs');
-        const settingsSection = document.getElementById('settings-candidate-section');
-        const globalExcludeToggle = document.getElementById('global-exclude-toggle');
-        const candidateList = document.getElementById('candidate-list');
-        const candidateCount = document.getElementById('candidate-count');
-        const toggleListBtn = document.getElementById('toggle-list-btn');
-        const rouletteSection = document.getElementById('roulette-section');
-        const canvas = document.getElementById('roulette-canvas');
-        const ctx = canvas.getContext('2d');
-        const spinBtn = document.getElementById('spin-btn');
-        const resetBtn = document.getElementById('reset-btn');
-        const resultModal = document.getElementById('result-modal');
-        const resultName = document.getElementById('result-name');
-        const resultQuestion = document.getElementById('result-question');
-        const closeModalBtns = document.querySelectorAll('.close-modal, .close-modal-btn');
+        // --- 設定・定数 ---
+        const CONFIG = {
+            WHEEL_COLORS: [
+                '#f59e0b', '#f43f5e', '#d946ef', '#8b5cf6', '#6366f1', '#0ea5e9', '#10b981', '#f97316'
+            ],
+            SPIN_DURATION: 5000,
+            MIN_SPINS: 5,
+            POINTER_ANGLES: {
+                1: [270],
+                2: [270, 90],
+                3: [270, 30, 150]
+            },
+            FONT_FAMILY_BODY: "'Zen Kaku Gothic New', sans-serif"
+        };
 
-        // 状態変数
-        let allParticipants = [];
-        let currentParticipants = [];
-        let presenters = new Set();
-        let currentPresenter = null;
-        let currentRotation = 0;
-        let isSpinning = false;
-        let globalWinners = new Set();
-        let excludedIDs = new Set();
-        let winnerCount = 1;
-        let wheelColors = [
-            '#f59e0b', '#f43f5e', '#d946ef', '#8b5cf6', '#6366f1', '#0ea5e9', '#10b981', '#f97316'
-        ];
+        // --- アプリケーションの状態 ---
+        const appState = {
+            allParticipants: [],
+            currentParticipants: [],
+            presenters: new Set(),
+            currentPresenter: null,
+            currentRotation: 0,
+            isSpinning: false,
+            globalWinners: new Set(),
+            excludedIDs: new Set(),
+            winnerCount: 1
+        };
 
-        // イベントリスナー
+        // --- DOM要素 ---
+        const UI = {
+            csvInput: document.getElementById('csv-input'),
+            dropArea: document.getElementById('drop-area'),
+            presenterSection: document.getElementById('presenter-section'),
+            presenterTabs: document.getElementById('presenter-tabs'),
+            settingsSection: document.getElementById('settings-candidate-section'),
+            globalExcludeToggle: document.getElementById('global-exclude-toggle'),
+            includeAllToggle: document.getElementById('include-all-toggle'),
+            candidateList: document.getElementById('candidate-list'),
+            candidateCount: document.getElementById('candidate-count'),
+            candidateSearch: document.getElementById('candidate-search'),
+            toggleListBtn: document.getElementById('toggle-list-btn'),
+            rouletteSection: document.getElementById('roulette-section'),
+            canvas: document.getElementById('roulette-canvas'),
+            spinBtn: document.getElementById('spin-btn'),
+            resetBtn: document.getElementById('reset-btn'),
+            resultModal: document.getElementById('result-modal'),
+            resultName: document.getElementById('result-name'),
+            resultQuestion: document.getElementById('result-question'),
+            closeModalBtns: document.querySelectorAll('.close-modal, .close-modal-btn'),
+            winnerCountSelector: document.getElementById('winner-count-selector'),
+            pointersContainer: document.getElementById('pointers-container'),
+            pointers: [
+                document.getElementById('pointer-1'),
+                document.getElementById('pointer-2'),
+                document.getElementById('pointer-3')
+            ],
+            help: {
+                btn: document.getElementById('help-btn'),
+                modal: document.getElementById('help-modal'),
+                closeBtn: document.getElementById('close-help'),
+                okBtn: document.getElementById('help-ok-btn')
+            }
+        };
 
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropArea.addEventListener(eventName, preventDefaults, false);
-        });
+        const ctx = UI.canvas.getContext('2d');
 
-        function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
-        ['dragenter', 'dragover'].forEach(eventName => { dropArea.addEventListener(eventName, highlight, false); });
-        ['dragleave', 'drop'].forEach(eventName => { dropArea.addEventListener(eventName, unhighlight, false); });
+        // イベントリスナー設定
 
-        function highlight(e) { dropArea.classList.add('dragover'); }
-        function unhighlight(e) { dropArea.classList.remove('dragover'); }
-
-        dropArea.addEventListener('drop', handleDrop, false);
-        csvInput.addEventListener('change', handleFiles, false);
-        spinBtn.addEventListener('click', spinRoulette);
-        resetBtn.addEventListener('click', resetApp);
-        closeModalBtns.forEach(btn => btn.addEventListener('click', closeResult));
-
-        // 使い方ガイドの制御
-        const helpBtn = document.getElementById('help-btn');
-        const helpModal = document.getElementById('help-modal');
-        const closeHelpBtn = document.getElementById('close-help');
-        const helpOkBtn = document.getElementById('help-ok-btn');
-
-        if (helpBtn && helpModal) {
-            helpBtn.addEventListener('click', () => {
-                helpModal.classList.remove('hidden');
+        // --- イベントリスナー ---
+        const initEventListeners = () => {
+            // ドラッグ&ドロップ
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(name => {
+                UI.dropArea.addEventListener(name, e => { e.preventDefault(); e.stopPropagation(); });
+            });
+            UI.dropArea.addEventListener('dragenter', () => UI.dropArea.classList.add('dragover'));
+            UI.dropArea.addEventListener('dragover', () => UI.dropArea.classList.add('dragover'));
+            UI.dropArea.addEventListener('dragleave', () => UI.dropArea.classList.remove('dragover'));
+            UI.dropArea.addEventListener('drop', e => {
+                UI.dropArea.classList.remove('dragover');
+                handleFiles({ target: { files: e.dataTransfer.files } });
             });
 
-            const closeHelp = () => helpModal.classList.add('hidden');
+            UI.csvInput.addEventListener('change', handleFiles);
+            UI.spinBtn.addEventListener('click', spinRoulette);
+            UI.resetBtn.addEventListener('click', resetApp);
+            UI.closeModalBtns.forEach(btn => btn.addEventListener('click', closeResult));
 
-            if (closeHelpBtn) closeHelpBtn.addEventListener('click', closeHelp);
-            if (helpOkBtn) helpOkBtn.addEventListener('click', closeHelp);
+            // 使い方ガイド
+            if (UI.help.btn) {
+                const toggleHelp = (show) => UI.help.modal.classList.toggle('hidden', !show);
+                UI.help.btn.addEventListener('click', () => toggleHelp(true));
+                UI.help.closeBtn?.addEventListener('click', () => toggleHelp(false));
+                UI.help.okBtn?.addEventListener('click', () => toggleHelp(false));
+                UI.help.modal.addEventListener('click', (e) => {
+                    if (e.target === UI.help.modal) toggleHelp(false);
+                });
+            }
 
-            helpModal.addEventListener('click', (e) => {
-                if (e.target === helpModal) closeHelp();
-            });
-        }
+            // 各種トグル・スイッチ
+            UI.globalExcludeToggle?.addEventListener('change', () => selectPresenter(appState.currentPresenter));
+            UI.includeAllToggle?.addEventListener('change', () => selectPresenter(appState.currentPresenter));
 
-        globalExcludeToggle.addEventListener('change', () => {
-            selectPresenter(currentPresenter);
-        });
+            // 当選人数
+            if (UI.winnerCountSelector) {
+                const btns = UI.winnerCountSelector.querySelectorAll('.count-btn');
+                btns.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        btns.forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        appState.winnerCount = parseInt(btn.dataset.count);
+                        updatePointerVisibility();
+                    });
+                });
+            }
 
-        const includeAllToggle = document.getElementById('include-all-toggle');
-        if (includeAllToggle) {
-            includeAllToggle.addEventListener('change', () => {
-                selectPresenter(currentPresenter);
-            });
-        }
+            // 候補者リストの開閉
+            const toggleList = () => {
+                UI.candidateList.classList.toggle('collapsed');
+                const isCollapsed = UI.candidateList.classList.contains('collapsed');
+                UI.toggleListBtn.style.transform = isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)';
+            };
+            UI.toggleListBtn?.addEventListener('click', toggleList);
+            document.querySelector('.candidate-header')?.addEventListener('click', toggleList);
 
-        // 当選人数セレクターの初期化
-        const winnerCountSelector = document.getElementById('winner-count-selector');
-        const pointersContainer = document.getElementById('pointers-container');
-        const p1 = document.getElementById('pointer-1');
-        const p2 = document.getElementById('pointer-2');
-        const p3 = document.getElementById('pointer-3');
-
-        if (winnerCountSelector) {
-            const btns = winnerCountSelector.querySelectorAll('.count-btn');
-            btns.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    btns.forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    winnerCount = parseInt(btn.dataset.count);
-
-                    if (p2) p2.classList.toggle('hidden', winnerCount < 2);
-                    if (p3) p3.classList.toggle('hidden', winnerCount < 3);
-
-                    if (pointersContainer) {
-                        pointersContainer.classList.toggle('mode-2', winnerCount === 2);
-                    }
+            // 検索
+            UI.candidateSearch?.addEventListener('input', e => {
+                const term = e.target.value.toLowerCase();
+                UI.candidateList.querySelectorAll('.candidate-item').forEach(item => {
+                    item.style.display = item.textContent.toLowerCase().includes(term) ? 'flex' : 'none';
                 });
             });
-        }
+        };
 
-        toggleListBtn.addEventListener('click', () => {
-            candidateList.classList.toggle('collapsed');
-            toggleListBtn.style.transform = candidateList.classList.contains('collapsed') ? 'rotate(-90deg)' : 'rotate(0deg)';
-        });
-        document.querySelector('.candidate-header').addEventListener('click', () => {
-            candidateList.classList.toggle('collapsed');
-            const isCollapsed = candidateList.classList.contains('collapsed');
-            toggleListBtn.style.transform = isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)';
-        });
+        const updatePointerVisibility = () => {
+            UI.pointers[1]?.classList.toggle('hidden', appState.winnerCount < 2);
+            UI.pointers[2]?.classList.toggle('hidden', appState.winnerCount < 3);
+            UI.pointersContainer?.classList.toggle('mode-2', appState.winnerCount === 2);
+        };
 
-        // 主要関数
-        function handleDrop(e) {
-            const dt = e.dataTransfer;
-            const files = dt.files;
-            handleFiles({ target: { files: files } });
-        }
-
+        // --- 主要関数 ---
         function handleFiles(e) {
             const file = e.target.files[0];
             if (file && (file.type === 'text/csv' || file.name.endsWith('.csv'))) {
                 const reader = new FileReader();
-                reader.onload = function (event) {
-                    parseCSV(event.target.result);
-                };
+                reader.onload = event => parseCSV(event.target.result);
                 reader.readAsText(file);
             } else {
-                alert('Please upload a valid CSV file.');
+                alert('CSVファイルをアップロードしてください。');
             }
         }
 
         function parseCSV(text) {
-            const lines = text.split(/\r\n|\n/);
-            allParticipants = [];
-            presenters = new Set();
-            globalWinners = new Set();
+            appState.allParticipants = [];
+            appState.presenters = new Set();
+            appState.globalWinners = new Set();
+            appState.excludedIDs = new Set();
 
-            const rows = text.split(/\r\n|\n/)
-                .filter(line => line.trim() !== '')
-                .map(line => line.split(','));
+            const rows = [];
+            let currentRow = [], currentField = '', insideQuotes = false;
+
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i], nextChar = text[i + 1];
+                if (char === '"') {
+                    if (insideQuotes && nextChar === '"') { currentField += '"'; i++; }
+                    else { insideQuotes = !insideQuotes; }
+                } else if (char === ',' && !insideQuotes) {
+                    currentRow.push(currentField); currentField = '';
+                } else if ((char === '\r' || char === '\n') && !insideQuotes) {
+                    if (char === '\r' && nextChar === '\n') i++;
+                    currentRow.push(currentField);
+                    if (currentRow.length > 1 || (currentRow[0] && currentRow[0] !== '')) rows.push(currentRow);
+                    currentRow = []; currentField = '';
+                } else {
+                    currentField += char;
+                }
+            }
+            if (currentField || currentRow.length > 0) {
+                currentRow.push(currentField);
+                if (currentRow.length > 1 || (currentRow[0] && currentRow[0] !== '')) rows.push(currentRow);
+            }
 
             rows.forEach((parts, index) => {
-                const name = parts[0] ? parts[0].trim() : '';
-                const question = parts[1] ? parts[1].trim() : '';
-                const rawTarget = parts[2] ? parts[2].trim() : '';
-                const target = rawTarget || 'All';
-
-                // 4列目: 除外フラグ (x, X, または *)
-                const exclusionFlag = parts[3] ? parts[3].trim() : '';
-                const isExcluded = (exclusionFlag === 'x' || exclusionFlag === 'X' || exclusionFlag === '*');
-
+                const name = parts[0]?.trim() || '';
+                const question = parts[1]?.trim() || '';
+                const target = parts[2]?.trim() || 'All';
+                const isExcluded = ['x', 'X', '*'].includes(parts[3]?.trim());
                 const id = `p-${index}-${Date.now()}`;
 
                 if (name && question) {
-                    allParticipants.push({ id, name, question, target });
-                    presenters.add(target);
-                    if (isExcluded) excludedIDs.add(id);
+                    appState.allParticipants.push({ id, name, question, target });
+                    appState.presenters.add(target);
+                    if (isExcluded) appState.excludedIDs.add(id);
                 }
             });
 
-            if (allParticipants.length === 0) {
-                alert('No valid data found in CSV.');
+            if (appState.allParticipants.length === 0) {
+                alert('有効なデータが見つかりませんでした。');
                 return;
             }
 
             initPresenterTabs();
-            document.getElementById('upload-section').classList.add('hidden');
-            presenterSection.classList.remove('hidden');
 
-            // 分割レイアウト（2カラム）を表示
-            const splitLayout = document.getElementById('split-layout-container');
-            if (splitLayout) {
-                splitLayout.classList.remove('hidden');
-            }
+            UI.uploadSection = document.getElementById('upload-section'); // Helper check
+            UI.uploadSection?.classList.add('hidden');
+            UI.presenterSection.classList.remove('hidden');
+            document.getElementById('split-layout-container')?.classList.remove('hidden');
 
-            // settingsSection.classList.remove('hidden');
-            // rouletteSection.classList.remove('hidden');
-
-            if (presenters.size > 0) {
-                const firstPresenter = Array.from(presenters)[0];
-                selectPresenter(firstPresenter);
+            if (appState.presenters.size > 0) {
+                selectPresenter(Array.from(appState.presenters)[0]);
             }
         }
 
         function initPresenterTabs() {
-            presenterTabs.innerHTML = '';
-            presenters.forEach(presenter => {
+            UI.presenterTabs.innerHTML = '';
+            appState.presenters.forEach(presenter => {
                 const btn = document.createElement('button');
                 btn.className = 'presenter-tab';
                 btn.textContent = presenter;
                 btn.addEventListener('click', () => selectPresenter(presenter));
-                presenterTabs.appendChild(btn);
+                UI.presenterTabs.appendChild(btn);
             });
         }
 
         function selectPresenter(presenter) {
             if (!presenter) return;
-            currentPresenter = presenter;
+            appState.currentPresenter = presenter;
 
-            document.querySelectorAll('.presenter-tab').forEach(btn => {
-                if (btn.textContent === presenter) btn.classList.add('active');
-                else btn.classList.remove('active');
+            UI.presenterTabs.querySelectorAll('.presenter-tab').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent === presenter);
             });
 
-            const isGlobalExclude = globalExcludeToggle.checked;
-            const isIncludeAll = includeAllToggle ? includeAllToggle.checked : false;
+            const isGlobalExclude = UI.globalExcludeToggle?.checked ?? true;
+            const isIncludeAll = UI.includeAllToggle?.checked ?? false;
 
-            let potentialCandidates = [];
-            if (isIncludeAll || presenter === 'All') {
-                potentialCandidates = [...allParticipants];
-            } else {
-                potentialCandidates = allParticipants.filter(p => p.target === presenter);
-            }
+            let potentialCandidates = (isIncludeAll || presenter === 'All')
+                ? [...appState.allParticipants]
+                : appState.allParticipants.filter(p => p.target === presenter);
 
-            currentParticipants = potentialCandidates.filter(p => {
-                if (excludedIDs.has(p.id)) return false;
-                if (isGlobalExclude && globalWinners.has(p.name)) return false;
+            appState.currentParticipants = potentialCandidates.filter(p => {
+                if (appState.excludedIDs.has(p.id)) return false;
+                if (isGlobalExclude && appState.globalWinners.has(p.name)) return false;
                 return true;
             });
 
-            candidateCount.textContent = `(${currentParticipants.length})`;
+            if (UI.candidateCount) UI.candidateCount.textContent = `(${appState.currentParticipants.length})`;
             renderCandidateList(potentialCandidates);
             drawWheel();
         }
 
-        const candidateSearch = document.getElementById('candidate-search');
-        if (candidateSearch) {
-            candidateSearch.addEventListener('input', (e) => {
-                const term = e.target.value.toLowerCase();
-                const items = candidateList.querySelectorAll('.candidate-item');
-                items.forEach(item => {
-                    const text = item.textContent.toLowerCase();
-                    if (text.includes(term)) {
-                        item.style.display = 'flex';
-                    } else {
-                        item.style.display = 'none';
-                    }
-                });
-            });
-        }
-
         function renderCandidateList(candidates) {
-            candidateList.innerHTML = '';
-            const searchTerm = candidateSearch ? candidateSearch.value.toLowerCase() : '';
+            if (!UI.candidateList) return;
+            UI.candidateList.innerHTML = '';
+            const searchTerm = UI.candidateSearch?.value.toLowerCase() || '';
 
             candidates.forEach(p => {
-                const isGlobalWinner = globalWinners.has(p.name);
-                const isExcluded = excludedIDs.has(p.id);
+                const isGlobalWinner = appState.globalWinners.has(p.name);
+                const isExcluded = appState.excludedIDs.has(p.id);
 
                 const item = document.createElement('div');
-                item.className = 'candidate-item';
-                if (isGlobalWinner) item.classList.add('winner');
-
-                if (searchTerm && !p.name.toLowerCase().includes(searchTerm)) {
-                    item.style.display = 'none';
-                }
+                item.className = `candidate-item ${isGlobalWinner ? 'winner' : ''}`;
+                if (searchTerm && !p.name.toLowerCase().includes(searchTerm)) item.style.display = 'none';
 
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
                 checkbox.checked = !isExcluded;
-
                 checkbox.addEventListener('change', (e) => {
-                    if (e.target.checked) {
-                        excludedIDs.delete(p.id);
-                    } else {
-                        excludedIDs.add(p.id);
-                    }
-                    selectPresenter(currentPresenter);
+                    if (e.target.checked) appState.excludedIDs.delete(p.id);
+                    else appState.excludedIDs.add(p.id);
+                    selectPresenter(appState.currentPresenter);
                 });
 
                 const label = document.createElement('span');
@@ -1317,28 +1195,27 @@
 
                 item.appendChild(checkbox);
                 item.appendChild(label);
-                candidateList.appendChild(item);
+                UI.candidateList.appendChild(item);
             });
         }
 
         function drawWheel() {
-            if (currentParticipants.length === 0) {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (appState.currentParticipants.length === 0) {
+                ctx.clearRect(0, 0, UI.canvas.width, UI.canvas.height);
                 return;
             }
 
-            const arc = Math.PI * 2 / currentParticipants.length;
-            const radius = canvas.width / 2;
+            const arc = Math.PI * 2 / appState.currentParticipants.length;
+            const radius = UI.canvas.width / 2;
 
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, UI.canvas.width, UI.canvas.height);
             ctx.setTransform(1, 0, 0, 1, 0, 0);
             ctx.translate(radius, radius);
-            ctx.rotate(currentRotation);
 
-            currentParticipants.forEach((participant, i) => {
+            appState.currentParticipants.forEach((participant, i) => {
                 const angle = i * arc;
                 ctx.beginPath();
-                ctx.fillStyle = wheelColors[i % wheelColors.length];
+                ctx.fillStyle = CONFIG.WHEEL_COLORS[i % CONFIG.WHEEL_COLORS.length];
                 ctx.moveTo(0, 0);
                 ctx.arc(0, 0, radius, angle, angle + arc);
                 ctx.lineTo(0, 0);
@@ -1346,7 +1223,9 @@
 
                 ctx.save();
                 ctx.fillStyle = "white";
-                ctx.font = "bold 20px 'Zen Kaku Gothic New'";
+                const textRadius = radius - 20;
+                const fontSize = Math.max(10, Math.min(20, (textRadius * arc) * 0.55));
+                ctx.font = `bold ${fontSize}px ${CONFIG.FONT_FAMILY_BODY}`;
                 ctx.textAlign = "right";
                 ctx.textBaseline = "middle";
                 ctx.rotate(angle + arc / 2);
@@ -1356,143 +1235,108 @@
         }
 
         function spinRoulette() {
-            if (isSpinning || currentParticipants.length === 0) return;
-            isSpinning = true;
-            spinBtn.disabled = true;
+            if (appState.isSpinning || appState.currentParticipants.length === 0) return;
+            appState.isSpinning = true;
+            UI.spinBtn.disabled = true;
 
-            // 1. 最初に当選者を決定
-            const winnerIndex = Math.floor(Math.random() * currentParticipants.length);
-            const winner = currentParticipants[winnerIndex];
+            const randomExtra = Math.random() * 360;
+            const targetRotation = appState.currentRotation + (CONFIG.MIN_SPINS * 360) + randomExtra;
 
-            // 2. 当選者のセグメントの中心で停止するように角度を計算
-            const arcDegrees = 360 / currentParticipants.length;
-            const winnerCenterAngle = winnerIndex * arcDegrees + arcDegrees / 2;
+            UI.canvas.style.transition = `transform ${CONFIG.SPIN_DURATION / 1000}s cubic-bezier(0.15, 0, 0.15, 1)`;
+            UI.canvas.style.transform = `rotate(${targetRotation}deg)`;
+            appState.currentRotation = targetRotation;
 
-            let targetRotation = 270 - winnerCenterAngle;
-
-            // 回転方向を正（時計回り）に固定し、最低5回転させる
-            const minSpins = 5;
-            const minRotation = currentRotation + (minSpins * 360);
-
-            while (targetRotation < minRotation) {
-                targetRotation += 360;
-            }
-
-            canvas.style.transition = 'transform 5s cubic-bezier(0.15, 0, 0.15, 1)';
-            canvas.style.transform = `rotate(${targetRotation}deg)`;
-            currentRotation = targetRotation;
-
-            // 5秒後に各矢印が指している人を特定
             setTimeout(() => {
                 const winners = [];
-                const arcDegrees = 360 / currentParticipants.length;
+                const arcDegrees = 360 / appState.currentParticipants.length;
                 const normalizedRotation = targetRotation % 360;
-
-                let pointerAngles = [270];
-                if (winnerCount === 2) {
-                    pointerAngles.push(90);
-                } else if (winnerCount === 3) {
-                    pointerAngles.push(30);
-                    pointerAngles.push(150);
-                }
+                const pointerAngles = CONFIG.POINTER_ANGLES[appState.winnerCount] || CONFIG.POINTER_ANGLES[1];
 
                 pointerAngles.forEach(pAngle => {
                     let wheelAngle = (pAngle - normalizedRotation) % 360;
                     if (wheelAngle < 0) wheelAngle += 360;
 
                     const winnerIndex = Math.floor(wheelAngle / arcDegrees);
-                    const winner = currentParticipants[winnerIndex];
+                    const winner = appState.currentParticipants[winnerIndex];
 
-                    if (winner && !winners.find(w => w.id === winner.id)) {
+                    if (winner && !winners.some(w => w.id === winner.id)) {
                         winners.push(winner);
                     } else if (winner) {
-                        const unused = currentParticipants.filter(p => !winners.find(w => w.id === p.id));
-                        if (unused.length > 0) {
-                            winners.push(unused[Math.floor(Math.random() * unused.length)]);
-                        }
+                        const unused = appState.currentParticipants.filter(p => !winners.some(w => w.id === p.id));
+                        if (unused.length > 0) winners.push(unused[Math.floor(Math.random() * unused.length)]);
                     }
                 });
-
                 finishSpin(winners);
-            }, 5000);
+            }, CONFIG.SPIN_DURATION);
         }
 
         function finishSpin(winners) {
-            isSpinning = false;
-            spinBtn.disabled = false;
-
+            appState.isSpinning = false;
+            UI.spinBtn.disabled = false;
             if (winners && winners.length > 0) {
-                winners.forEach(w => globalWinners.add(w.name));
-                selectPresenter(currentPresenter);
+                winners.forEach(w => appState.globalWinners.add(w.name));
+                selectPresenter(appState.currentPresenter);
                 showResult(winners);
             }
         }
 
         function showResult(winners) {
             if (!winners || winners.length === 0) return;
+            const isIncludeAll = UI.includeAllToggle?.checked ?? false;
+            const modalContent = UI.resultModal.querySelector('.modal-content');
+            const modalBody = UI.resultModal.querySelector('.modal-body');
 
-            const isIncludeAll = includeAllToggle && includeAllToggle.checked;
-            const modalContent = document.querySelector('.modal-content');
+            // 既存リザルトのクリア
+            UI.resultModal.querySelectorAll('.result-item').forEach(item => item.remove());
 
             if (winners.length === 1) {
                 modalContent.classList.remove('multi-winner');
                 const winner = winners[0];
-                resultName.textContent = winner.name;
-                resultQuestion.textContent = isIncludeAll ? "発表を聞いての質問をお願いします" : winner.question;
-
-                resultName.style.display = 'block';
-                resultQuestion.style.display = 'block';
-                const existingItems = modalContent.querySelectorAll('.result-item');
-                existingItems.forEach(item => item.remove());
+                UI.resultName.textContent = winner.name;
+                UI.resultQuestion.textContent = isIncludeAll ? "発表を聞いての質問をお願いします" : winner.question;
+                UI.resultName.style.display = 'block';
+                UI.resultQuestion.style.display = 'block';
             } else {
                 modalContent.classList.add('multi-winner');
-                resultName.style.display = 'none';
-                resultQuestion.style.display = 'none';
-
-                const existingItems = modalContent.querySelectorAll('.result-item');
-                existingItems.forEach(item => item.remove());
-
-                const modalBody = document.querySelector('.modal-body');
+                UI.resultName.style.display = 'none';
+                UI.resultQuestion.style.display = 'none';
                 winners.forEach(winner => {
                     const item = document.createElement('div');
                     item.className = 'result-item';
-
-                    const nameDiv = document.createElement('div');
-                    nameDiv.className = 'result-name';
-                    nameDiv.textContent = winner.name;
-
-                    const qDiv = document.createElement('div');
-                    qDiv.className = 'result-question';
-                    qDiv.textContent = isIncludeAll ? "発表を聞いての質問をお願いします" : winner.question;
-
-                    item.appendChild(nameDiv);
-                    item.appendChild(qDiv);
+                    item.innerHTML = `
+                <div class="result-name">${winner.name}</div>
+                <div class="result-question">${isIncludeAll ? "発表を聞いての質問をお願いします" : winner.question}</div>
+            `;
                     modalBody.appendChild(item);
                 });
             }
-            resultModal.classList.remove('hidden');
+            UI.resultModal.classList.remove('hidden');
         }
 
-        function closeResult() { resultModal.classList.add('hidden'); }
+        function closeResult() { UI.resultModal.classList.add('hidden'); }
 
         function resetApp() {
-            csvInput.value = '';
-            document.getElementById('upload-section').classList.remove('hidden');
-            presenterSection.classList.add('hidden');
+            UI.csvInput.value = '';
+            document.getElementById('upload-section')?.classList.remove('hidden');
+            UI.presenterSection.classList.add('hidden');
+            document.getElementById('split-layout-container')?.classList.add('hidden');
+            UI.resultModal.classList.add('hidden');
+            UI.canvas.style.transition = 'none';
+            UI.canvas.style.transform = 'rotate(0deg)';
 
-            // Hide split layout
-            const splitLayout = document.getElementById('split-layout-container');
-            if (splitLayout) splitLayout.classList.add('hidden');
-
-            if (settingsSection) settingsSection.classList.add('hidden');
-            rouletteSection.classList.add('hidden');
-            resultModal.classList.add('hidden');
-            canvas.style.transition = 'none';
-            canvas.style.transform = 'rotate(0deg)';
-            currentRotation = 0;
-            allParticipants = [];
-            currentParticipants = [];
+            appState.currentRotation = 0;
+            appState.allParticipants = [];
+            appState.currentParticipants = [];
+            appState.globalWinners = new Set();
+            appState.excludedIDs = new Set();
         }
+
+        // --- 初期化 ---
+        const init = () => {
+            initEventListeners();
+        };
+
+        init();
     </script>
 </body>
 
