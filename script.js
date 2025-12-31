@@ -17,7 +17,7 @@ const CONFIG = {
 const appState = {
     allParticipants: [],
     currentParticipants: [],
-    manualParticipants: [], // 手動入力用
+    manualParticipants: [], // 手動入力用 (初期画面)
     presenters: new Set(),
     currentPresenter: null,
     currentRotation: 0,
@@ -61,7 +61,7 @@ const UI = {
         closeBtn: document.getElementById('close-help'),
         okBtn: document.getElementById('help-ok-btn')
     },
-    // 手動入力用要素
+    // 手動入力用要素 (初期画面)
     entryTabs: document.querySelectorAll('.mode-tab'),
     modeContents: document.querySelectorAll('.mode-content'),
     manualName: document.getElementById('manual-name'),
@@ -71,12 +71,17 @@ const UI = {
     clearManualBtn: document.getElementById('clear-manual-btn'),
     manualPreviewList: document.getElementById('manual-preview-list'),
     manualEntryCount: document.getElementById('manual-entry-count'),
-    startManualBtn: document.getElementById('start-manual-btn')
+    startManualBtn: document.getElementById('start-manual-btn'),
+    // サイドパネル追加登録用
+    sideEntryToggle: document.getElementById('side-entry-toggle'),
+    sideEntryBody: document.getElementById('side-entry-body'),
+    sideName: document.getElementById('side-name'),
+    sideTarget: document.getElementById('side-target'),
+    sideQuestion: document.getElementById('side-question'),
+    addSideBtn: document.getElementById('add-side-btn')
 };
 
 const ctx = UI.canvas.getContext('2d');
-
-// イベントリスナー設定
 
 // --- イベントリスナー ---
 const initEventListeners = () => {
@@ -92,9 +97,9 @@ const initEventListeners = () => {
         handleFiles({ target: { files: e.dataTransfer.files } });
     });
 
-    UI.csvInput.addEventListener('change', handleFiles);
-    UI.spinBtn.addEventListener('click', spinRoulette);
-    UI.resetBtn.addEventListener('click', resetApp);
+    UI.csvInput?.addEventListener('change', handleFiles);
+    UI.spinBtn?.addEventListener('click', spinRoulette);
+    UI.resetBtn?.addEventListener('click', resetApp);
     UI.closeModalBtns.forEach(btn => btn.addEventListener('click', closeResult));
 
     // 入力モード切り替え
@@ -109,7 +114,7 @@ const initEventListeners = () => {
         });
     });
 
-    // 手動入力アクション
+    // 手動入力アクション (初期画面)
     UI.addManualBtn?.addEventListener('click', addManualEntry);
     UI.clearManualBtn?.addEventListener('click', clearManualEntries);
     UI.startManualBtn?.addEventListener('click', () => {
@@ -117,6 +122,14 @@ const initEventListeners = () => {
             processParticipants(appState.manualParticipants);
         }
     });
+
+    // サイドパネル追加登録アクション
+    UI.sideEntryToggle?.addEventListener('click', () => {
+        UI.sideEntryBody.classList.toggle('collapsed');
+        const isCollapsed = UI.sideEntryBody.classList.contains('collapsed');
+        UI.sideEntryToggle.querySelector('.btn-text').style.transform = isCollapsed ? 'rotate(0deg)' : 'rotate(180deg)';
+    });
+    UI.addSideBtn?.addEventListener('click', addSideEntry);
 
     // 使い方ガイド
     if (UI.help.btn) {
@@ -284,6 +297,39 @@ function renderManualList() {
         `;
         UI.manualPreviewList.appendChild(item);
     });
+}
+
+function addSideEntry() {
+    const name = UI.sideName.value.trim();
+    const question = UI.sideQuestion.value.trim();
+    const target = UI.sideTarget.value.trim() || 'All';
+
+    if (!name || !question) {
+        alert('名前と質問内容を入力してください。');
+        return;
+    }
+
+    const id = `s-${Date.now()}`;
+    const newParticipant = { id, name, question, target, isExcluded: false };
+
+    // 全体データに追加
+    appState.allParticipants.push(newParticipant);
+
+    // 発表者リスト（タブ）を更新する必要があるかチェック
+    if (!appState.presenters.has(target)) {
+        appState.presenters.add(target);
+        initPresenterTabs(); // 新規タブを生成
+    }
+
+    // 現在の表示を更新
+    selectPresenter(appState.currentPresenter);
+
+    // 入力欄をクリアして閉じる
+    UI.sideName.value = '';
+    UI.sideQuestion.value = '';
+    UI.sideTarget.value = '';
+    UI.sideEntryBody.classList.add('collapsed');
+    UI.sideEntryToggle.querySelector('.btn-text').style.transform = 'rotate(0deg)';
 }
 
 // CSVと手動入力の共通処理

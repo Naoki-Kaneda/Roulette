@@ -777,6 +777,59 @@ input:checked+.slider:before {
     line-height: 1.6;
 }
 
+/* --- Side Entry (Roulette View) --- */
+.side-entry-container {
+    background: var(--bg-card);
+    border-radius: 1rem;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    margin-top: 0.5rem;
+}
+
+.side-entry-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    background: rgba(245, 158, 11, 0.05);
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+}
+
+.side-entry-header h3 {
+    font-size: 1rem;
+    color: var(--primary);
+}
+
+.side-entry-body {
+    transition: max-height 0.4s ease-out, padding 0.4s ease-out;
+    max-height: 500px;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.side-entry-body.collapsed {
+    max-height: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.side-form {
+    padding: 1rem !important;
+    background: transparent !important;
+    border: none !important;
+    gap: 0.75rem !important;
+}
+
+.side-form .form-input,
+.side-form .form-textarea {
+    font-size: 0.9rem;
+    padding: 0.6rem 0.8rem;
+}
+
+.side-form .form-textarea {
+    min-height: 60px;
+}
+
 .result-item {
     padding: 1rem 1.5rem;
     border-bottom: 1px solid var(--border);

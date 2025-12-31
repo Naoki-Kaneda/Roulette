@@ -122,6 +122,22 @@
                             <!-- Dynamic checkboxes -->
                         </div>
                     </div>
+
+                    <!-- Side Entry Form (Added here) -->
+                    <div class="side-entry-container">
+                        <header class="side-entry-header" id="side-entry-toggle">
+                            <h3>参加者の追加</h3>
+                            <button class="btn-text">▼</button>
+                        </header>
+                        <div class="side-entry-body collapsed" id="side-entry-body">
+                            <div class="manual-entry-form side-form">
+                                <input type="text" id="side-name" placeholder="名前 (必須)" class="form-input">
+                                <input type="text" id="side-target" placeholder="発表者名 (任意)" class="form-input">
+                                <textarea id="side-question" placeholder="質問内容 (必須)" class="form-textarea"></textarea>
+                                <button id="add-side-btn" class="btn btn-secondary btn-small">追加</button>
+                            </div>
+                        </div>
+                    </div>
                 </section>
 
                 <!-- Right Panel: Roulette -->
