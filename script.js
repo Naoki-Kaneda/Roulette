@@ -17,6 +17,7 @@ const CONFIG = {
 const appState = {
     allParticipants: [],
     currentParticipants: [],
+    manualParticipants: [], // 手動入力用
     presenters: new Set(),
     currentPresenter: null,
     currentRotation: 0,
@@ -59,7 +60,18 @@ const UI = {
         modal: document.getElementById('help-modal'),
         closeBtn: document.getElementById('close-help'),
         okBtn: document.getElementById('help-ok-btn')
-    }
+    },
+    // 手動入力用要素
+    entryTabs: document.querySelectorAll('.mode-tab'),
+    modeContents: document.querySelectorAll('.mode-content'),
+    manualName: document.getElementById('manual-name'),
+    manualTarget: document.getElementById('manual-target'),
+    manualQuestion: document.getElementById('manual-question'),
+    addManualBtn: document.getElementById('add-manual-btn'),
+    clearManualBtn: document.getElementById('clear-manual-btn'),
+    manualPreviewList: document.getElementById('manual-preview-list'),
+    manualEntryCount: document.getElementById('manual-entry-count'),
+    startManualBtn: document.getElementById('start-manual-btn')
 };
 
 const ctx = UI.canvas.getContext('2d');
@@ -84,6 +96,27 @@ const initEventListeners = () => {
     UI.spinBtn.addEventListener('click', spinRoulette);
     UI.resetBtn.addEventListener('click', resetApp);
     UI.closeModalBtns.forEach(btn => btn.addEventListener('click', closeResult));
+
+    // 入力モード切り替え
+    UI.entryTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            UI.entryTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            const mode = tab.dataset.mode;
+            UI.modeContents.forEach(content => {
+                content.classList.toggle('hidden', content.id !== `${mode}-mode-content`);
+            });
+        });
+    });
+
+    // 手動入力アクション
+    UI.addManualBtn?.addEventListener('click', addManualEntry);
+    UI.clearManualBtn?.addEventListener('click', clearManualEntries);
+    UI.startManualBtn?.addEventListener('click', () => {
+        if (appState.manualParticipants.length > 0) {
+            processParticipants(appState.manualParticipants);
+        }
+    });
 
     // 使い方ガイド
     if (UI.help.btn) {
@@ -150,11 +183,7 @@ function handleFiles(e) {
 }
 
 function parseCSV(text) {
-    appState.allParticipants = [];
-    appState.presenters = new Set();
-    appState.globalWinners = new Set();
-    appState.excludedIDs = new Set();
-
+    const participants = [];
     const rows = [];
     let currentRow = [], currentField = '', insideQuotes = false;
 
@@ -187,21 +216,93 @@ function parseCSV(text) {
         const id = `p-${index}-${Date.now()}`;
 
         if (name && question) {
-            appState.allParticipants.push({ id, name, question, target });
-            appState.presenters.add(target);
-            if (isExcluded) appState.excludedIDs.add(id);
+            participants.push({ id, name, question, target, isExcluded });
         }
     });
 
-    if (appState.allParticipants.length === 0) {
+    if (participants.length === 0) {
         alert('有効なデータが見つかりませんでした。');
         return;
     }
 
+    processParticipants(participants);
+}
+
+function addManualEntry() {
+    const name = UI.manualName.value.trim();
+    const question = UI.manualQuestion.value.trim();
+    const target = UI.manualTarget.value.trim() || 'All';
+
+    if (!name || !question) {
+        alert('名前と質問内容を入力してください。');
+        return;
+    }
+
+    const id = `m-${Date.now()}`;
+    appState.manualParticipants.push({ id, name, question, target, isExcluded: false });
+
+    // 入力欄をクリア
+    UI.manualName.value = '';
+    UI.manualQuestion.value = '';
+    UI.manualTarget.value = '';
+
+    renderManualList();
+}
+
+function removeManualEntry(id) {
+    appState.manualParticipants = appState.manualParticipants.filter(p => p.id !== id);
+    renderManualList();
+}
+
+function clearManualEntries() {
+    if (appState.manualParticipants.length === 0) return;
+    if (confirm('すべての登録を削除しますか？')) {
+        appState.manualParticipants = [];
+        renderManualList();
+    }
+}
+
+function renderManualList() {
+    UI.manualPreviewList.innerHTML = '';
+    UI.manualEntryCount.textContent = appState.manualParticipants.length;
+    UI.startManualBtn.disabled = appState.manualParticipants.length === 0;
+
+    if (appState.manualParticipants.length === 0) {
+        UI.manualPreviewList.innerHTML = '<div class="empty-msg">参加者を追加してください</div>';
+        return;
+    }
+
+    appState.manualParticipants.forEach(p => {
+        const item = document.createElement('div');
+        item.className = 'manual-item';
+        item.innerHTML = `
+            <div class="manual-item-info">
+                <div class="manual-item-name">${p.name}</div>
+                <div class="manual-item-meta">宛先: ${p.target}</div>
+            </div>
+            <button class="remove-btn" onclick="removeManualEntry('${p.id}')">&times;</button>
+        `;
+        UI.manualPreviewList.appendChild(item);
+    });
+}
+
+// CSVと手動入力の共通処理
+function processParticipants(participants) {
+    appState.allParticipants = [];
+    appState.presenters = new Set();
+    appState.globalWinners = new Set();
+    appState.excludedIDs = new Set();
+
+    participants.forEach(p => {
+        appState.allParticipants.push(p);
+        appState.presenters.add(p.target);
+        if (p.isExcluded) appState.excludedIDs.add(p.id);
+    });
+
     initPresenterTabs();
 
-    UI.uploadSection = document.getElementById('upload-section'); // Helper check
-    UI.uploadSection?.classList.add('hidden');
+    const uploadSection = document.getElementById('upload-section');
+    uploadSection?.classList.add('hidden');
     UI.presenterSection.classList.remove('hidden');
     document.getElementById('split-layout-container')?.classList.remove('hidden');
 
@@ -406,13 +507,18 @@ function resetApp() {
     appState.currentRotation = 0;
     appState.allParticipants = [];
     appState.currentParticipants = [];
+    appState.manualParticipants = [];
     appState.globalWinners = new Set();
     appState.excludedIDs = new Set();
+    renderManualList();
 }
 
 // --- 初期化 ---
 const init = () => {
     initEventListeners();
 };
+
+// グローバルにアクセスが必要な関数
+window.removeManualEntry = removeManualEntry;
 
 init();

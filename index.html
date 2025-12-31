@@ -21,19 +21,56 @@
         </header>
 
         <main>
-            <!-- File Upload Section -->
+            <!-- File Entry Section -->
             <section class="upload-section" id="upload-section">
-                <div class="file-drop-area" id="drop-area">
-                    <span class="file-icon">📂</span>
-                    <span class="file-msg">CSVファイルをドラッグ＆ドロップ</span>
-                    <span class="file-sub">またはクリックして選択</span>
-                    <input class="file-input" type="file" id="csv-input" accept=".csv">
+                <!-- Entry Mode Tabs -->
+                <div class="entry-mode-tabs">
+                    <button class="mode-tab active" data-mode="csv">CSVアップロード</button>
+                    <button class="mode-tab" data-mode="manual">手動入力</button>
                 </div>
-                <div class="format-hint">
-                    <small>フォーマット: 名前, 質問内容, 宛先発表者名, 除外コード:x (任意)</small>
-                    <p style="margin-top: 0.5rem; color: var(--text-muted); font-size: 0.8rem; opacity: 0.8;">
-                        ※ データはブラウザ内でのみ処理され、外部サーバーへの送信・保存は一切行われません。
-                    </p>
+
+                <!-- CSV Upload Mode -->
+                <div id="csv-mode-content" class="mode-content">
+                    <div class="file-drop-area" id="drop-area">
+                        <span class="file-icon">📂</span>
+                        <span class="file-msg">CSVファイルをドラッグ＆ドロップ</span>
+                        <span class="file-sub">またはクリックして選択</span>
+                        <input class="file-input" type="file" id="csv-input" accept=".csv">
+                    </div>
+                    <div class="format-hint">
+                        <small>フォーマット: 名前, 質問内容, 宛先発表者名, 除外コード:x (任意)</small>
+                    </div>
+                </div>
+
+                <!-- Manual Entry Mode -->
+                <div id="manual-mode-content" class="mode-content hidden">
+                    <div class="manual-entry-form">
+                        <div class="form-row">
+                            <input type="text" id="manual-name" placeholder="名前 (必須)" class="form-input">
+                            <input type="text" id="manual-target" placeholder="発表者名 (任意)" class="form-input">
+                        </div>
+                        <textarea id="manual-question" placeholder="質問内容 (必須)" class="form-textarea"></textarea>
+                        <button id="add-manual-btn" class="btn btn-secondary btn-small">追加</button>
+                    </div>
+
+                    <div class="manual-list-container">
+                        <header class="manual-list-header">
+                            <h4>追加済みの参加者 (<span id="manual-entry-count">0</span>)</h4>
+                            <button id="clear-manual-btn" class="btn-text">すべてクリア</button>
+                        </header>
+                        <div id="manual-preview-list" class="manual-preview-list">
+                            <!-- Items will be added here -->
+                            <div class="empty-msg">参加者を追加してください</div>
+                        </div>
+                    </div>
+
+                    <div class="manual-controls">
+                        <button id="start-manual-btn" class="btn btn-primary" disabled>ルーレットを開始</button>
+                    </div>
+                </div>
+
+                <div class="security-hint">
+                    <p>※ データはブラウザ内でのみ処理され、外部サーバーへの送信・保存は一切行われません。</p>
                 </div>
             </section>
 
