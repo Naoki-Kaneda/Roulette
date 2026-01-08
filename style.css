@@ -758,23 +758,32 @@ input:checked+.slider:before {
 }
 
 .result-name {
-    font-size: 2.5rem;
+    font-size: 2.2rem;
     font-weight: 700;
+    color: var(--primary);
     margin-bottom: 1rem;
-    background: linear-gradient(to right, #fff, #94a3b8);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 20px var(--primary-glow);
 }
 
 .result-question {
     font-size: 1.2rem;
     color: var(--text-main);
+    line-height: 1.6;
     background: rgba(255, 255, 255, 0.05);
     padding: 1.5rem;
     border-radius: 1rem;
-    margin-bottom: 2rem;
-    line-height: 1.6;
+    max-width: 100%;
+    /* 親要素に合わせる */
+    margin: 0 auto;
+    white-space: pre-wrap;
+    /* 改行を保持 */
+    word-break: break-word;
+    /* 長い単語でも折り返す */
+    max-height: 300px;
+    /* 長すぎる場合はスクロール */
+    overflow-y: auto;
+    text-align: left;
+    /* 長文は見やすく左寄せ */
 }
 
 /* --- Side Entry (Roulette View) --- */
@@ -849,6 +858,11 @@ input:checked+.slider:before {
     padding: 1rem;
     border-radius: 0.8rem;
     text-align: left;
+    white-space: pre-wrap;
+    /* 改行を保持 (複数当選時) */
+    word-break: break-word;
+    max-height: 200px;
+    overflow-y: auto;
 }
 
 .modal-content.multi-winner {
