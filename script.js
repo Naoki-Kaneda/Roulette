@@ -146,6 +146,22 @@ const initEventListeners = () => {
     UI.globalExcludeToggle?.addEventListener('change', () => selectPresenter(appState.currentPresenter));
     UI.includeAllToggle?.addEventListener('change', () => selectPresenter(appState.currentPresenter));
 
+    // モーダルを閉じるためのキーボードショートカット (Esc, Enter)
+    window.addEventListener('keydown', (e) => {
+        const activeModal = document.querySelector('.modal:not(.hidden)');
+        if (!activeModal) return;
+
+        if (e.key === 'Escape') {
+            activeModal.classList.add('hidden');
+        } else if (e.key === 'Enter') {
+            // 入力フィールドフォーカス時はEnterでの誤操作防止（ただし結果表示モーダルは閉じる）
+            const isInput = e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA';
+            if (activeModal.id === 'result-modal' || !isInput) {
+                activeModal.classList.add('hidden');
+            }
+        }
+    });
+
     // 当選人数
     if (UI.winnerCountSelector) {
         const btns = UI.winnerCountSelector.querySelectorAll('.count-btn');
