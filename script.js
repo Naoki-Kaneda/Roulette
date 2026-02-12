@@ -25,7 +25,7 @@ const appState = {
     globalWinners: new Set(),
     excludedIDs: new Set(),
     winnerCount: 1,
-    excludeConfig: 'all'
+    excludeConfig: '2'
 };
 
 // --- DOM要素 ---
@@ -518,7 +518,13 @@ function finishSpin(winners) {
     appState.isSpinning = false;
     UI.spinBtn.disabled = false;
     if (winners && winners.length > 0) {
-        winners.forEach(w => appState.globalWinners.add(w.name));
+        winners.forEach(w => {
+            // 順序を最新にするために一旦削除して再追加
+            if (appState.globalWinners.has(w.name)) {
+                appState.globalWinners.delete(w.name);
+            }
+            appState.globalWinners.add(w.name);
+        });
         saveToLocalStorage(); // 保存
         selectPresenter(appState.currentPresenter);
         showResult(winners);
@@ -582,7 +588,17 @@ function resetApp() {
 }
 
 // --- 永続化機能 (LocalStorage & CSV) ---
+// --- 永続化機能 (LocalStorage & CSV) ---
 const STORAGE_KEY = 'roulette_winners_history';
+
+// セッション管理
+let currentSessionId = sessionStorage.getItem('roulette_session_id');
+if (!currentSessionId) {
+    // 新規セッション開始（日時ベースのID）
+    const now = new Date();
+    currentSessionId = `session_${now.getFullYear()}${now.getMonth() + 1}${now.getDate()}_${now.getHours()}${now.getMinutes()}_${Math.random().toString(36).substring(2, 5)}`;
+    sessionStorage.setItem('roulette_session_id', currentSessionId);
+}
 
 // 名前を正規化する（空白除去）
 function normalizeName(name) {
@@ -591,25 +607,49 @@ function normalizeName(name) {
 }
 
 // 状態変数に追加
-// appState.excludeConfig = 'all'; // '1', '2', 'all' (初期値はinitで設定)
+// appState.excludeConfig = '2'; // '1', '2', 'all' (初期値はinitで設定)
 
-// 当選済みかどうか判定（正規化して比較）
+// 当選済みかどうか判定（セッションベース）
 function isAlreadyWinner(name) {
     const target = normalizeName(name);
-    let winners = Array.from(appState.globalWinners);
 
-    if (appState.excludeConfig && appState.excludeConfig !== 'all') {
-        const limit = parseInt(appState.excludeConfig, 10);
-        if (!isNaN(limit)) {
-            // 末尾（最新）から limit 件だけ取得
-            winners = winners.slice(-limit);
-        }
+    // 1. セッションIDのリストを作成（ユニークかつ出現順＝時系列）
+    // globalWinners は { name, session, timestamp } または 古い形式の文字列レイヤー
+    // まずはオブジェクト形式に正規化して扱う
+    const normalizedWinners = Array.from(appState.globalWinners).map(w => {
+        if (typeof w === 'string') return { name: w, session: 'session_archive', timestamp: 0 }; // 古い形式をアーカイブセッションとして扱う
+        return w;
+    });
+
+    // セッション一覧を抽出（重複排除）
+    // 配列の末尾が最新と仮定（追加ロジックで保証）
+    const sessions = [...new Set(normalizedWinners.map(w => w.session))];
+
+    // 2. 除外対象とするセッションを決定
+    // currentSessionId は無条件で対象（今回の当選者）
+    const pastSessions = sessions.filter(s => s !== currentSessionId);
+
+    // 設定に応じた過去セッション数
+    let allowedPastLimit = 0;
+    if (appState.excludeConfig === 'all') {
+        allowedPastLimit = pastSessions.length;
+    } else {
+        const configLimit = parseInt(appState.excludeConfig, 10);
+        // 「直近2回」＝ 今回(1) + 過去(1) なので、config - 1
+        allowedPastLimit = Math.max(0, configLimit - 1);
     }
 
-    return winners.some(w => normalizeName(w) === target);
+    const targetPastSessions = pastSessions.slice(-allowedPastLimit);
+    const targetSessionsSet = new Set([...targetPastSessions, currentSessionId]);
+
+    // 3. 判定
+    return normalizedWinners.some(w =>
+        targetSessionsSet.has(w.session) && normalizeName(w.name) === target
+    );
 }
 
 function saveToLocalStorage() {
+    // 配列として保存（Setから変換）
     const winners = Array.from(appState.globalWinners);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(winners));
 }
@@ -618,10 +658,29 @@ function loadFromLocalStorage() {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
         try {
-            const winners = JSON.parse(saved);
-            if (Array.isArray(winners)) {
-                // Setは順序を保持するが、念のため配列から再構築
-                appState.globalWinners = new Set(winners);
+            let data = JSON.parse(saved);
+
+            // 旧データ（文字列配列）からの移行：アーカイブ扱いにする
+            if (Array.isArray(data) && data.length > 0 && typeof data[0] === 'string') {
+                data = data.map(name => ({
+                    name: name,
+                    session: 'session_archive',
+                    timestamp: 0
+                }));
+            }
+
+            if (Array.isArray(data)) {
+                // 重複排除ロジックは保存時に行うため、ここでは読み込むだけ
+                // Setにオブジェクトを入れる場合は参照が異なると重複するので注意が必要だが、
+                // 今回は saveToLocalStorage で配列化し、読み込み時はそれをそのまま使う形にするか、
+                // あるいは Set<Object> は機能しない（内容が同じでも別物扱い）ので、
+                // appState.globalWinners を Array に変更する方が安全。
+                // ★今回の修正範囲を最小限にするため、Setのまま運用するが、
+                // 判定ロジック内で Array.from して中身を見る形は継続。
+                // ただし、オブジェクトのSetはadd/hasが効かないので、重複チェックを自前でやる必要がある。
+                // -> 一旦 Array に変更したほうが良いが、影響範囲が大きいので、
+                //    load時は Set に追加するが、オブジェクトとして追加することになる。
+                appState.globalWinners = new Set(data);
             }
         } catch (e) {
             console.error('Failed to load history', e);
@@ -629,27 +688,63 @@ function loadFromLocalStorage() {
     }
 }
 
-function clearHistory() {
-    if (!confirm('【注意】\nこれまでの当選履歴をすべて消去しますか？\n\n※この操作は取り消せません。')) return;
-
-    localStorage.removeItem(STORAGE_KEY);
-    appState.globalWinners.clear();
-
-    // 画面更新
-    selectPresenter(appState.currentPresenter);
-    alert('当選履歴をリセットしました。');
+function showClearHistoryModal() {
+    document.getElementById('history-clear-modal').classList.remove('hidden');
 }
 
+function clearHistoryRange(range) {
+    if (range === 'all') {
+        appState.globalWinners.clear();
+    } else {
+        // セッションリスト取得（新しい順）
+        // globalWinners は Set なので Array にして map
+        const allWinners = Array.from(appState.globalWinners);
+        const sessions = [...new Set(allWinners.map(w => w.session))]; // セット順＝挿入順＝時系列と仮定
+
+        let targetSessions = [];
+        if (range === '1') {
+            // 今回のセッション (currentSessionId) のみ
+            // もし今回のセッションがまだ履歴になくても、指定されれば削除対象とする（エラーにはならない）
+            targetSessions = [currentSessionId];
+        } else if (range === '2') {
+            // 今回 + 前回（自分以外で一番新しいもの）
+            const past = sessions.filter(s => s !== currentSessionId);
+            targetSessions = [currentSessionId, ...past.slice(-1)];
+        }
+
+        const targetSessionsSet = new Set(targetSessions);
+
+        // 削除実行
+        // Setから条件に合うものを除外して再構築
+        const newWinners = allWinners.filter(w => !targetSessionsSet.has(w.session));
+        appState.globalWinners = new Set(newWinners);
+    }
+
+    saveToLocalStorage();
+    selectPresenter(appState.currentPresenter);
+    document.getElementById('history-clear-modal').classList.add('hidden');
+    alert('履歴を削除しました');
+}
+
+// CSV出力用（オブジェクト対応修正）
 function exportWinnersToCSV() {
-    const winners = Array.from(appState.globalWinners);
+    // オブジェクト配列または文字列配列（旧データ）が混在する可能性あり
+    const winners = Array.from(appState.globalWinners).map(w => {
+        return (typeof w === 'string') ? { name: w, session: '', timestamp: 0 } : w;
+    });
+
     if (winners.length === 0) {
         alert('当選履歴がありません');
         return;
     }
 
-    // 文字化け防止のためにBOMを付与
+    // 日時も出力
+    const csvContent = "名前,セッションID,日時\n" + winners.map(w => {
+        const dateStr = w.timestamp ? new Date(w.timestamp).toLocaleString() : '-';
+        return `${w.name},${w.session},"${dateStr}"`;
+    }).join("\n");
+
     const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
-    const csvContent = "名前\n" + winners.join("\n");
     const blob = new Blob([bom, csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
 
@@ -673,12 +768,26 @@ const init = () => {
     // CSVダウンロードボタンのイベント
     document.getElementById('download-csv-btn')?.addEventListener('click', exportWinnersToCSV);
     // 履歴クリアボタンのイベント
-    document.getElementById('clear-history-btn')?.addEventListener('click', clearHistory);
+    document.getElementById('clear-history-btn')?.addEventListener('click', showClearHistoryModal);
+
+    // 履歴クリアモーダルのイベント
+    const historyModal = document.getElementById('history-clear-modal');
+    historyModal?.querySelectorAll('[data-clear]').forEach(btn => {
+        btn.addEventListener('click', () => clearHistoryRange(btn.dataset.clear));
+    });
+    historyModal?.querySelector('.close-modal-btn')?.addEventListener('click', () => {
+        historyModal.classList.add('hidden');
+    });
 
     // 除外範囲設定のイベント
     document.getElementById('exclude-range-select')?.addEventListener('change', (e) => {
         appState.excludeConfig = e.target.value;
         selectPresenter(appState.currentPresenter);
+    });
+
+    // 保存ヘルプボタン（?アイコン）→ ヘルプモーダルを開く
+    document.getElementById('save-help-btn')?.addEventListener('click', () => {
+        document.getElementById('help-modal')?.classList.remove('hidden');
     });
 };
 

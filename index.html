@@ -115,11 +115,12 @@
                         <select id="exclude-range-select" class="search-input" style="width: auto; padding: 0.3rem;">
                             <option value="all">全履歴</option>
                             <option value="1">直近1回分</option>
-                            <option value="2">直近2回分</option>
+                            <option value="2" selected>直近2回分</option>
                         </select>
                     </div>
 
-                    <div class="settings-panel" style="display: flex; gap: 1rem; justify-content: space-between;">
+                    <div class="settings-panel"
+                        style="display: flex; gap: 0.5rem; justify-content: space-between; align-items: center;">
                         <button id="download-csv-btn" class="btn-text"
                             style="font-size: 0.9rem; color: var(--primary);">
                             📥 履歴保存
@@ -127,6 +128,11 @@
                         <button id="clear-history-btn" class="btn-text"
                             style="font-size: 0.9rem; color: var(--text-muted);">
                             🗑️ 履歴クリア
+                        </button>
+                        <button id="save-help-btn" class="btn-text"
+                            style="font-size: 0.75rem; width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--text-muted); display: inline-flex; align-items: center; justify-content: center; padding: 0; color: var(--text-muted); cursor: pointer;"
+                            title="保存・除外の仕様について">
+                            ?
                         </button>
                     </div>
 
@@ -229,6 +235,19 @@
                     <p>当選人数（1〜3人）を選び、「START」で抽選開始！選出された人が一括表示されます。</p>
                     <p><small>※<strong>Enter</strong> や <strong>Esc</strong> キーで結果画面をサクサク閉じられます。</small></p>
                 </div>
+                <div class="help-step">
+                    <h4><span class="help-badge">5</span> 履歴の保存と除外</h4>
+                    <p><strong>自動保存</strong>: 当選結果はブラウザに自動保存されます。ページを閉じても履歴が残ります。</p>
+                    <p><strong>1回の定義</strong>: アプリを開いてから閉じる（タブ/ブラウザを閉じる）までが1回（1セッション）です。</p>
+                    <p><strong>除外範囲</strong>:</p>
+                    <ul style="margin: 0.3rem 0 0.5rem 1.2rem; font-size: 0.9rem;">
+                        <li><strong>直近1回</strong>: 今回のセッションの当選者のみ除外</li>
+                        <li><strong>直近2回</strong>: 今回＋前回のセッションの当選者を除外</li>
+                        <li><strong>全履歴</strong>: 全ての当選者を除外</li>
+                    </ul>
+                    <p><strong>履歴クリア</strong>: 🗑️ボタンから「今回分のみ」「今回＋前回」「全て」を選んで削除できます。</p>
+                    <p><strong>CSV保存</strong>: 📥ボタンで当選履歴をCSVファイルとしてダウンロードできます。</p>
+                </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-primary" id="help-ok-btn">了解</button>
@@ -237,6 +256,28 @@
     </div>
 
     <button id="help-btn" title="使い方ガイド">?</button>
+    <div id="history-clear-modal" class="modal hidden">
+        <div class="modal-content" style="max-width: 400px;">
+            <h3>履歴の削除</h3>
+            <p style="margin-bottom: 1rem;">削除する範囲を選択してください。<br><small
+                    style="color: var(--text-muted);">※この操作は取り消せません。</small></p>
+            <div class="modal-actions" style="display: flex; flex-direction: column; gap: 10px;">
+                <button class="btn-text" data-clear="1"
+                    style="border: 1px solid var(--border); padding: 0.8rem;">今回分のみ削除</button>
+                <button class="btn-text" data-clear="2"
+                    style="border: 1px solid var(--border); padding: 0.8rem;">今回と前回分を削除</button>
+                <button class="btn-text danger" data-clear="all"
+                    style="color: #ef4444; border: 1px solid #ef4444; padding: 0.8rem;">全履歴を削除</button>
+                <button class="close-modal-btn" style="margin-top: 10px;">キャンセル</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-version"
+        style="position: fixed; bottom: 8px; right: 12px; font-size: 0.75rem; color: var(--text-muted); opacity: 0.6; pointer-events: none; z-index: 1;">
+        v1.1.0
+    </div>
+
     <script src="script.js"></script>
 </body>
 
