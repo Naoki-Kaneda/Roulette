@@ -352,7 +352,7 @@ function addSideEntry() {
 function processParticipants(participants) {
     appState.allParticipants = [];
     appState.presenters = new Set();
-    appState.globalWinners = new Set();
+    // appState.globalWinners = new Set(); // 履歴を消さないように変更
     appState.excludedIDs = new Set();
 
     participants.forEach(p => {
@@ -401,7 +401,8 @@ function selectPresenter(presenter) {
 
     appState.currentParticipants = potentialCandidates.filter(p => {
         if (appState.excludedIDs.has(p.id)) return false;
-        if (isGlobalExclude && appState.globalWinners.has(p.name)) return false;
+        // グローバル除外（過去当選者）の判定に正規化ロジックを使用
+        if (isGlobalExclude && isAlreadyWinner(p.name)) return false;
         return true;
     });
 
@@ -416,7 +417,7 @@ function renderCandidateList(candidates) {
     const searchTerm = UI.candidateSearch?.value.toLowerCase() || '';
 
     candidates.forEach(p => {
-        const isGlobalWinner = appState.globalWinners.has(p.name);
+        const isGlobalWinner = isAlreadyWinner(p.name);
         const isExcluded = appState.excludedIDs.has(p.id);
 
         const item = document.createElement('div');
@@ -582,6 +583,18 @@ function resetApp() {
 // --- 永続化機能 (LocalStorage & CSV) ---
 const STORAGE_KEY = 'roulette_winners_history';
 
+// 名前を正規化する（空白除去）
+function normalizeName(name) {
+    if (!name) return '';
+    return name.replace(/[\s\u3000]+/g, '');
+}
+
+// 当選済みかどうか判定（正規化して比較）
+function isAlreadyWinner(name) {
+    const target = normalizeName(name);
+    return Array.from(appState.globalWinners).some(w => normalizeName(w) === target);
+}
+
 function saveToLocalStorage() {
     const winners = Array.from(appState.globalWinners);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(winners));
@@ -599,6 +612,17 @@ function loadFromLocalStorage() {
             console.error('Failed to load history', e);
         }
     }
+}
+
+function clearHistory() {
+    if (!confirm('【注意】\nこれまでの当選履歴をすべて消去しますか？\n\n※この操作は取り消せません。')) return;
+
+    localStorage.removeItem(STORAGE_KEY);
+    appState.globalWinners.clear();
+
+    // 画面更新
+    selectPresenter(appState.currentPresenter);
+    alert('当選履歴をリセットしました。');
 }
 
 function exportWinnersToCSV() {
@@ -633,6 +657,8 @@ const init = () => {
 
     // CSVダウンロードボタンのイベント
     document.getElementById('download-csv-btn')?.addEventListener('click', exportWinnersToCSV);
+    // 履歴クリアボタンのイベント
+    document.getElementById('clear-history-btn')?.addEventListener('click', clearHistory);
 };
 
 // グローバルにアクセスが必要な関数
