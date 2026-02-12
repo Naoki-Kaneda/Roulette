@@ -517,6 +517,7 @@ function finishSpin(winners) {
     UI.spinBtn.disabled = false;
     if (winners && winners.length > 0) {
         winners.forEach(w => appState.globalWinners.add(w.name));
+        saveToLocalStorage(); // 保存
         selectPresenter(appState.currentPresenter);
         showResult(winners);
     }
@@ -572,12 +573,66 @@ function resetApp() {
     appState.manualParticipants = [];
     appState.globalWinners = new Set();
     appState.excludedIDs = new Set();
+
+    localStorage.removeItem(STORAGE_KEY); // 履歴消去
+
     renderManualList();
+}
+
+// --- 永続化機能 (LocalStorage & CSV) ---
+const STORAGE_KEY = 'roulette_winners_history';
+
+function saveToLocalStorage() {
+    const winners = Array.from(appState.globalWinners);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(winners));
+}
+
+function loadFromLocalStorage() {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+        try {
+            const winners = JSON.parse(saved);
+            if (Array.isArray(winners)) {
+                winners.forEach(w => appState.globalWinners.add(w));
+            }
+        } catch (e) {
+            console.error('Failed to load history', e);
+        }
+    }
+}
+
+function exportWinnersToCSV() {
+    const winners = Array.from(appState.globalWinners);
+    if (winners.length === 0) {
+        alert('当選履歴がありません');
+        return;
+    }
+
+    // 文字化け防止のためにBOMを付与
+    const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+    const csvContent = "名前\n" + winners.join("\n");
+    const blob = new Blob([bom, csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    const date = new Date();
+    const dateStr = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}_${String(date.getHours()).padStart(2, '0')}${String(date.getMinutes()).padStart(2, '0')}`;
+
+    link.setAttribute("href", url);
+    link.setAttribute("download", `winners_${dateStr}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
 
 // --- 初期化 ---
 const init = () => {
     initEventListeners();
+    loadFromLocalStorage(); // 履歴の復元
+
+    // CSVダウンロードボタンのイベント
+    document.getElementById('download-csv-btn')?.addEventListener('click', exportWinnersToCSV);
 };
 
 // グローバルにアクセスが必要な関数
