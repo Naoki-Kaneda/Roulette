@@ -24,7 +24,8 @@ const appState = {
     isSpinning: false,
     globalWinners: new Set(),
     excludedIDs: new Set(),
-    winnerCount: 1
+    winnerCount: 1,
+    excludeConfig: 'all'
 };
 
 // --- DOM要素 ---
@@ -589,10 +590,23 @@ function normalizeName(name) {
     return name.replace(/[\s\u3000]+/g, '');
 }
 
+// 状態変数に追加
+// appState.excludeConfig = 'all'; // '1', '2', 'all' (初期値はinitで設定)
+
 // 当選済みかどうか判定（正規化して比較）
 function isAlreadyWinner(name) {
     const target = normalizeName(name);
-    return Array.from(appState.globalWinners).some(w => normalizeName(w) === target);
+    let winners = Array.from(appState.globalWinners);
+
+    if (appState.excludeConfig && appState.excludeConfig !== 'all') {
+        const limit = parseInt(appState.excludeConfig, 10);
+        if (!isNaN(limit)) {
+            // 末尾（最新）から limit 件だけ取得
+            winners = winners.slice(-limit);
+        }
+    }
+
+    return winners.some(w => normalizeName(w) === target);
 }
 
 function saveToLocalStorage() {
@@ -606,7 +620,8 @@ function loadFromLocalStorage() {
         try {
             const winners = JSON.parse(saved);
             if (Array.isArray(winners)) {
-                winners.forEach(w => appState.globalWinners.add(w));
+                // Setは順序を保持するが、念のため配列から再構築
+                appState.globalWinners = new Set(winners);
             }
         } catch (e) {
             console.error('Failed to load history', e);
@@ -659,6 +674,12 @@ const init = () => {
     document.getElementById('download-csv-btn')?.addEventListener('click', exportWinnersToCSV);
     // 履歴クリアボタンのイベント
     document.getElementById('clear-history-btn')?.addEventListener('click', clearHistory);
+
+    // 除外範囲設定のイベント
+    document.getElementById('exclude-range-select')?.addEventListener('change', (e) => {
+        appState.excludeConfig = e.target.value;
+        selectPresenter(appState.currentPresenter);
+    });
 };
 
 // グローバルにアクセスが必要な関数
