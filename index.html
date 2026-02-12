@@ -274,8 +274,50 @@
     </div>
 
     <div id="app-version"
-        style="position: fixed; bottom: 8px; right: 12px; font-size: 0.75rem; color: var(--text-muted); opacity: 0.6; pointer-events: none; z-index: 1;">
-        v1.1.0
+        style="position: fixed; bottom: 8px; right: 12px; font-size: 0.75rem; color: var(--text-muted); opacity: 0.6; z-index: 10; display: flex; align-items: center; gap: 8px;">
+        <a href="#" id="privacy-policy-link"
+            style="color: var(--text-muted); text-decoration: underline; pointer-events: auto; opacity: 0.8;">プライバシーポリシー</a>
+        <span style="pointer-events: none;">v1.1.0</span>
+    </div>
+
+    <!-- プライバシーポリシーモーダル -->
+    <div id="privacy-modal" class="modal hidden">
+        <div class="modal-content" style="max-width: 550px;">
+            <div class="modal-header">
+                <h3>プライバシーポリシー</h3>
+                <button class="close-modal" id="close-privacy">&times;</button>
+            </div>
+            <div class="modal-body" style="font-size: 0.9rem; line-height: 1.7;">
+                <p style="margin-bottom: 0.8rem;">本アプリケーション（Roulette Selector）は、利用者のプライバシーを重視し、以下の方針に基づいてデータを取り扱います。</p>
+
+                <h4 style="margin-top: 1rem;">1. 収集するデータ</h4>
+                <p>本アプリが取り扱うデータは、利用者がCSVファイルまたは手動入力で登録した<strong>参加者の名前</strong>と<strong>質問内容</strong>のみです。</p>
+
+                <h4 style="margin-top: 1rem;">2. データの保存先</h4>
+                <p>当選履歴は、利用者のブラウザ内（<code>localStorage</code>）にのみ保存されます。<strong>外部サーバーやクラウドへの送信は一切行いません。</strong></p>
+
+                <h4 style="margin-top: 1rem;">3. 第三者提供</h4>
+                <p>本アプリは利用者のデータを第三者に提供・共有・販売することはありません。</p>
+
+                <h4 style="margin-top: 1rem;">4. データの管理</h4>
+                <ul style="margin: 0.3rem 0 0.5rem 1.2rem;">
+                    <li>保存データはブラウザのキャッシュ削除により消去されます</li>
+                    <li>アプリ内の「履歴クリア」機能でいつでも削除できます</li>
+                    <li>CSVエクスポートしたファイルは利用者のPC内に保存されます</li>
+                </ul>
+
+                <h4 style="margin-top: 1rem;">5. Cookie・トラッキング</h4>
+                <p>本アプリはCookie、アクセス解析ツール、広告トラッキングを<strong>一切使用しません。</strong></p>
+
+                <h4 style="margin-top: 1rem;">6. お問い合わせ</h4>
+                <p>本ポリシーに関するご質問は、アプリ管理者までお問い合わせください。</p>
+
+                <p style="margin-top: 1rem; font-size: 0.8rem; color: var(--text-muted);">最終更新日: 2025年2月12日</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="privacy-ok-btn">閉じる</button>
+            </div>
+        </div>
     </div>
 
     <script src="script.js"></script>

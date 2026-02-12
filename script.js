@@ -789,6 +789,18 @@ const init = () => {
     document.getElementById('save-help-btn')?.addEventListener('click', () => {
         document.getElementById('help-modal')?.classList.remove('hidden');
     });
+
+    // プライバシーポリシーのイベント
+    document.getElementById('privacy-policy-link')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('privacy-modal')?.classList.remove('hidden');
+    });
+    document.getElementById('close-privacy')?.addEventListener('click', () => {
+        document.getElementById('privacy-modal')?.classList.add('hidden');
+    });
+    document.getElementById('privacy-ok-btn')?.addEventListener('click', () => {
+        document.getElementById('privacy-modal')?.classList.add('hidden');
+    });
 };
 
 // グローバルにアクセスが必要な関数
